@@ -147,6 +147,7 @@ menuPaciente.addEventListener('click', (evento) => {
 document.querySelector('#sair-paciente').addEventListener('click', () => {
   menuPaciente.close()
   formularioLogin.reset()
+  fecharTelaSessao()
   ultimoPerfil = null
   respostasChecklist.length = 0
   checklistPaciente.hidden = true
@@ -192,6 +193,7 @@ const respostasChecklist = []
 let indiceChecklist = 0
 
 function mostrarInicioPaciente(foco = tituloAcessoPaciente) {
+  fecharTelaSessao()
   checklistPaciente.hidden = true
   checklistConcluido.hidden = true
   inicioPaciente.hidden = false
@@ -264,3 +266,78 @@ function renderizarResumoChecklist() {
   })
   resumo.replaceChildren(...linhas)
 }
+
+const telaSessao = document.querySelector('#sessao-paciente')
+const tituloSessao = document.querySelector('#titulo-sessao')
+const tempoSessao = document.querySelector('#tempo-sessao')
+const estadoSessao = document.querySelector('#estado-sessao')
+const botaoAlternarSessao = document.querySelector('#alternar-sessao')
+const botaoFinalizarSessao = document.querySelector('#finalizar-sessao')
+const telaSessaoFinalizada = document.querySelector('#sessao-finalizada')
+const tituloSessaoFinalizada = document.querySelector('#titulo-sessao-finalizada')
+const duracaoSessaoFinalizada = document.querySelector('#duracao-sessao-finalizada')
+const botaoVoltarSessao = document.querySelector('#encerrar-visualizacao-sessao')
+let numeroSessao = 0
+let tempoAcumulado = 0
+let inicioCronometro = null
+let intervaloSessao = null
+
+function atualizarCronometro() {
+  const tempoEmCurso = inicioCronometro === null ? 0 : performance.now() - inicioCronometro
+  const segundos = Math.floor((tempoAcumulado + tempoEmCurso) / 1000)
+  tempoSessao.textContent = [
+    Math.floor(segundos / 3600),
+    Math.floor(segundos / 60) % 60,
+    segundos % 60,
+  ].map((valor) => String(valor).padStart(2, '0')).join(':')
+}
+
+function pararCronometro() {
+  if (inicioCronometro === null) return
+  tempoAcumulado += performance.now() - inicioCronometro
+  inicioCronometro = null
+  clearInterval(intervaloSessao)
+  intervaloSessao = null
+  atualizarCronometro()
+}
+
+function fecharTelaSessao() {
+  pararCronometro()
+  telaSessao.hidden = true
+  telaSessaoFinalizada.hidden = true
+}
+
+document.querySelector('#preparar-sessao').addEventListener('click', () => {
+  pararCronometro()
+  numeroSessao += 1
+  tempoAcumulado = 0
+  atualizarCronometro()
+  tituloSessao.textContent = 'Sessão ' + String(numeroSessao).padStart(2, '0')
+  estadoSessao.textContent = 'Pronta para iniciar. A câmera ainda não está integrada.'
+  botaoAlternarSessao.textContent = 'Iniciar monitoramento'
+  botaoFinalizarSessao.disabled = true
+  trocarTela(checklistConcluido, telaSessao, tituloSessao)
+})
+
+botaoAlternarSessao.addEventListener('click', () => {
+  if (inicioCronometro !== null) {
+    pararCronometro()
+    botaoAlternarSessao.textContent = 'Retomar monitoramento'
+    estadoSessao.textContent = 'Sessão pausada.'
+    return
+  }
+
+  inicioCronometro = performance.now()
+  intervaloSessao = setInterval(atualizarCronometro, 250)
+  botaoAlternarSessao.textContent = 'Pausar monitoramento'
+  botaoFinalizarSessao.disabled = false
+  estadoSessao.textContent = 'Sessão em andamento no modo de demonstração.'
+})
+
+botaoFinalizarSessao.addEventListener('click', () => {
+  pararCronometro()
+  duracaoSessaoFinalizada.textContent = tempoSessao.textContent
+  trocarTela(telaSessao, telaSessaoFinalizada, tituloSessaoFinalizada)
+})
+
+botaoVoltarSessao.addEventListener('click', () => mostrarInicioPaciente())

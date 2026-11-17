@@ -396,3 +396,18 @@ body:has(#tela-acesso-paciente[data-bs-theme="dark"]:not([hidden])) {
   background: var(--paciente-destaque);
   color: var(--paciente-texto);
 }
+
+.sessao-tempo {
+  font-size: clamp(2.5rem, 10vw, 4.5rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.sessao-qualidade {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  background: var(--paciente-destaque);
+}

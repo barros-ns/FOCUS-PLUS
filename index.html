@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+  <!-- Metadados da página e carregamento do JavaScript -->
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -10,6 +11,7 @@
   </head>
   <body>
     <main class = "container py-5">
+      <!-- Boas-vindas e apresentação do FOCUS+ -->
       <section id = "tela-inicio" class = "text-center mx-auto">
         <img src="src/img/eye.svg" class="rounded-circle object-fit-contain bg-light p-3" width="100" height="100" >
         <h1 class = "mb-4">FOCUS+</h1>
@@ -39,6 +41,7 @@
 
       </section>
 
+      <!-- Seleção de perfil: paciente ou médico -->
       <section id="tela-perfil" class="perfil mx-auto" aria-labelledby="titulo-perfil" hidden>
         <button id="voltar-inicio" class="btn perfil-voltar px-0" type="button">← Voltar</button>
         <header class="text-center mb-4">
@@ -64,9 +67,11 @@
         </div>
       </section>
 
+      <!-- Acesso à conta e recuperação de senha -->
       <section id="tela-login" class="perfil mx-auto" aria-labelledby="titulo-login" hidden>
         <button id="voltar-perfis" class="btn perfil-voltar px-0" type="button">← Trocar perfil</button>
         <h1 id="titulo-login" class="h2 text-center mt-3 mb-4" tabindex="-1">Entrar no FOCUS+</h1>
+        <!-- Formulário compartilhado pelos dois perfis -->
         <form id="login-form" class="login-form">
           <div class="mb-3">
             <label for="login-email" class="form-label">E-mail</label>
@@ -86,6 +91,7 @@
           <button class="btn login-entrar rounded-pill w-100" type="submit">Entrar</button>
           <p id="login-status" class="login-status mt-3 mb-0" role="status"></p>
         </form>
+        <!-- Formulário exibido ao clicar em Esqueci minha senha -->
         <form id="recuperar-senha" class="login-form" hidden>
           <p>Informe o e-mail associado à sua conta.</p>
           <div class="mb-4">
@@ -98,6 +104,7 @@
         </form>
       </section>
 
+      <!-- Primeiro acesso do paciente: consentimento para uso da câmera -->
       <section id="tela-termos" class="perfil mx-auto" aria-labelledby="titulo-termos" hidden>
         <button id="voltar-termos" class="btn perfil-voltar px-0" type="button">← Voltar ao login</button>
         <h1 id="titulo-termos" class="h2 text-center mt-3 mb-4" tabindex="-1">Termos de uso e privacidade</h1>
@@ -130,6 +137,7 @@
         </form>
       </section>
 
+      <!-- Primeiro acesso do paciente: explicação do monitoramento -->
       <section id="tela-monitoramento" class="perfil mx-auto" aria-labelledby="titulo-monitoramento" hidden>
         <h1 id="titulo-monitoramento" class="h2 text-center mb-4" tabindex="-1">Como funciona o monitoramento?</h1>
 
@@ -165,6 +173,7 @@
       </section>
 
 
+      <!-- Primeiro acesso do paciente: prévia e verificações da câmera -->
       <section id="tela-teste-camera" class="perfil mx-auto" aria-labelledby="titulo-teste-camera" hidden>
         <h1 id="titulo-teste-camera" class="h2 text-center mb-3" tabindex="-1">Prévia da câmera</h1>
         <p class="text-center mb-4">Posicione-se de maneira confortável diante da câmera</p>
@@ -193,6 +202,7 @@
       </section>
 
 
+      <!-- Primeiro acesso do paciente: quantidade de telas usadas no trabalho -->
       <section id="tela-configuracao-telas" class="perfil w-100 mx-auto" aria-labelledby="titulo-configuracao-telas" hidden>
         <h1 id="titulo-configuracao-telas" class="h2 text-center mb-4" tabindex="-1">Configuração de telas</h1>
 
@@ -216,7 +226,9 @@
       </section>
 
 
+      <!-- Área do paciente: navegação e fluxo da sessão -->
       <section id="tela-acesso-paciente" class="perfil mx-auto" aria-labelledby="titulo-acesso-paciente" hidden>
+        <!-- Barra superior: menu, tema e notificações -->
         <header class="paciente-barra mb-4">
           <button id="abrir-menu-paciente" class="btn paciente-controle" type="button" aria-label="Abrir menu" aria-haspopup="dialog" aria-controls="menu-paciente">☰</button>
           <span class="paciente-marca">FOCUS+</span>
@@ -238,6 +250,7 @@
           </div>
         </header>
 
+        <!-- Painel lateral com navegação e botão Sair -->
         <dialog id="menu-paciente" class="paciente-menu" aria-labelledby="titulo-menu-paciente">
           <div class="paciente-menu-conteudo">
             <div class="d-flex align-items-center justify-content-between mb-4">
@@ -257,6 +270,7 @@
         </dialog>
 
 
+        <!-- Página inicial do paciente: sessão, histórico e profissional vinculado -->
         <div id="inicio-paciente">
         <header class="mb-4">
           <h1 id="titulo-acesso-paciente" class="display-5 mb-2" tabindex="-1">Olá, Maria</h1>
@@ -296,6 +310,7 @@
         </div>
 
         </div>
+        <!-- Checklist pré-sessão: progresso, pergunta atual e respostas -->
         <section id="checklist-paciente" aria-labelledby="titulo-checklist" hidden>
           <h1 id="titulo-checklist" class="h2" tabindex="-1">Checklist de hoje</h1>
           <p>Antes de começar, conte como você está neste momento.</p>
@@ -316,6 +331,7 @@
           </article>
           <button id="checklist-voltar" class="btn paciente-controle mt-3" type="button">← Pergunta anterior</button>
         </section>
+        <!-- Confirmação do checklist e resumo das respostas -->
         <section id="checklist-concluido" class="paciente-card" aria-labelledby="titulo-checklist-concluido" hidden>
           <header class="text-center mb-4">
             <span class="paciente-status rounded-circle p-3 mb-3">
@@ -330,8 +346,63 @@
 
           <h2 class="h5">Resumo das respostas</h2>
           <dl id="resumo-checklist" class="list-group list-group-flush mb-4"></dl>
-          <button id="preparar-sessao" class="btn login-entrar rounded-pill w-100" type="button" disabled>Preparar sessão</button>
+          <button id="preparar-sessao" class="btn login-entrar rounded-pill w-100" type="button">Preparar sessão</button>
         </section>
+        <!-- Sessão: cronômetro, qualidade da captura e controles -->
+        <section id="sessao-paciente" class="paciente-card" aria-labelledby="titulo-sessao" hidden>
+          <header class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h1 id="titulo-sessao" class="h4 mb-0" tabindex="-1">Sessão 01</h1>
+            <span class="paciente-status rounded-pill px-3 py-1">Câmera inativa</span>
+          </header>
+
+          <div class="text-center py-4 py-sm-5">
+            <p class="mb-2">Tempo da sessão</p>
+            <p id="tempo-sessao" class="sessao-tempo mb-0" role="timer" aria-label="Tempo da sessão">00:00:00</p>
+          </div>
+
+          <div class="sessao-qualidade rounded-3 p-3 mb-4">
+            <span>Qualidade da captura</span>
+            <strong id="qualidade-captura">Indisponível</strong>
+          </div>
+
+          <p id="estado-sessao" class="small text-center" role="status">Pronta para iniciar. A câmera ainda não está integrada.</p>
+          <div class="d-grid d-sm-flex justify-content-sm-center gap-2">
+            <button id="alternar-sessao" class="btn login-entrar rounded-pill px-4" type="button">Iniciar monitoramento</button>
+            <button id="finalizar-sessao" class="btn paciente-controle rounded-pill px-4" type="button" disabled>Finalizar sessão</button>
+          </div>
+        </section>
+
+        <!-- Encerramento: resumo dos indicadores da sessão -->
+        <section id="sessao-finalizada" class="paciente-card" aria-labelledby="titulo-sessao-finalizada" hidden>
+          <header class="text-center mb-4">
+            <span class="paciente-status rounded-circle p-3 mb-3">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="m8 12 2.5 2.5L16 9"/>
+              </svg>
+            </span>
+            <h1 id="titulo-sessao-finalizada" class="h2" tabindex="-1">Sessão finalizada!</h1>
+            <p class="mb-0">Seu resumo da sessão está pronto.</p>
+          </header>
+
+          <dl class="sessao-qualidade rounded-3 p-3 mb-4 d-grid">
+            <div class="d-flex flex-wrap justify-content-between gap-2">
+              <dt class="fw-normal">Duração</dt>
+              <dd id="duracao-sessao-finalizada" class="fw-bold mb-0"></dd>
+            </div>
+            <div class="d-flex flex-wrap justify-content-between gap-2">
+              <dt class="fw-normal">Check-ins</dt>
+              <dd class="fw-bold mb-0">0 registrados</dd>
+            </div>
+            <div class="d-flex flex-wrap justify-content-between gap-2">
+              <dt class="fw-normal">Qualidade da câmera no geral</dt>
+              <dd class="fw-bold mb-0">Indisponível</dd>
+            </div>
+          </dl>
+
+          <button id="encerrar-visualizacao-sessao" class="btn login-entrar rounded-pill w-100" type="button">Voltar ao início</button>
+        </section>
+
       </section>
 
     </main>
