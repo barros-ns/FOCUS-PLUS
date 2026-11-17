@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" src="/src/main.js"></script>
+    <title>focus-plus</title>
+    
+  </head>
+  <body>
+    <main class = "container py-5">
+      <section id = "tela-inicio" class = "text-center mx-auto">
+        <img src="src/img/eye.svg" class="rounded-circle object-fit-contain bg-light p-3" width="100" height="100" >
+        <h1 class = "mb-4">FOCUS+</h1>
+        <p class = "mb-4">Acompanhar. Observar. Compreender</p>
+        <p>Aplicativo de apoio ao acompanhamento de pessoas com TDAH</p>
+
+        <button id = "btn-comecar" type="button" class = "btn btn-success rounded-pill d-block mx-auto mb-4">
+          Começar
+        </button>
+
+        <figure class = "destaque d-inline-flex flex-column align-items-center align-top mx-2">
+          <img src = "src/img/check-circle.svg" alt = "Checked" class="rounded-circle object-fit-contain bg-light p-3">
+          <figcaption>Acompanhamento personalizado</figcaption>
+        </figure>
+
+        <figure class = "destaque d-inline-flex flex-column align-items-center align-top mx-2">
+          <img src = "src/img/shield.svg" alt = "Checked" class="rounded-circle object-fit-contain bg-light p-3">
+          <figcaption>Privacidade Garantida</figcaption>
+        </figure>
+        
+
+        <figure class = "destaque d-inline-flex flex-column align-items-center align-top mx-2">
+          <img src = "src/img/graph-up.svg" alt = "Checked" class="rounded-circle object-fit-contain bg-light p-3">
+          <figcaption>Privacidade Garantida</figcaption>
+        </figure>
+
+
+      </section>
+
+      <section id="tela-perfil" class="perfil mx-auto" aria-labelledby="titulo-perfil" hidden>
+        <button id="voltar-inicio" class="btn perfil-voltar px-0" type="button">← Voltar</button>
+        <header class="text-center mb-4">
+          <span class="perfil-marca"><img src="/src/img/eye.svg" width="24" height="24" alt=""></span>
+          <h1 id="titulo-perfil" class="mt-3" tabindex="-1">Como você deseja entrar no FOCUS+?</h1>
+        </header>
+
+        <div class="row g-3">
+          <div class="col-12 col-sm-6">
+            <button type="button" class="perfil-opcao w-100 h-100" data-perfil="paciente">
+              <span class="perfil-icone"><img src="/src/img/person.svg" width="24" height="24" alt=""></span>
+              <span class="perfil-nome">Paciente</span>
+              <span>Acompanhe sua rotina, responda ao checklist e consulte suas sessões.</span>
+            </button>
+          </div>
+          <div class="col-12 col-sm-6">
+            <button type="button" class="perfil-opcao w-100 h-100" data-perfil="medico">
+              <span class="perfil-icone"><img src="/src/img/people.svg" width="24" height="24" alt=""></span>
+              <span class="perfil-nome">Médico</span>
+              <span>Consulte o histórico e os relatórios dos pacientes que você acompanha.</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tela-login" class="perfil mx-auto" aria-labelledby="titulo-login" hidden>
+        <button id="voltar-perfis" class="btn perfil-voltar px-0" type="button">← Trocar perfil</button>
+        <h1 id="titulo-login" class="h2 text-center mt-3 mb-4" tabindex="-1">Entrar no FOCUS+</h1>
+        <form id="login-form" class="login-form">
+          <div class="mb-3">
+            <label for="login-email" class="form-label">E-mail</label>
+            <input id="login-email" class="form-control" type="email" autocomplete="username" required>
+          </div>
+          <div class="mb-4">
+            <label for="login-senha" class="form-label">Senha</label>
+            <input id="login-senha" class="form-control" type="password" autocomplete="current-password" required>
+          </div>
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+            <div class="form-check mb-0">
+              <input id="lembrar-login" class="form-check-input" type="checkbox">
+              <label for="lembrar-login" class="form-check-label">Lembrar de mim</label>
+            </div>
+            <button id="esqueci-senha" class="btn btn-link login-link p-0" type="button">Esqueci minha senha</button>
+          </div>
+          <button class="btn login-entrar rounded-pill w-100" type="submit">Entrar</button>
+          <p id="login-status" class="login-status mt-3 mb-0" role="status"></p>
+        </form>
+        <form id="recuperar-senha" class="login-form" hidden>
+          <p>Informe o e-mail associado à sua conta.</p>
+          <div class="mb-4">
+            <label for="recuperar-email" class="form-label">E-mail</label>
+            <input id="recuperar-email" class="form-control" type="email" autocomplete="email" required>
+          </div>
+          <button class="btn login-entrar rounded-pill w-100" type="submit">Enviar link</button>
+          <button id="voltar-login" class="btn btn-link login-link d-block mx-auto mt-2" type="button">Voltar para o login</button>
+          <p id="recuperar-status" class="login-status mt-3 mb-0" role="status"></p>
+        </form>
+      </section>
+
+      <section id="tela-termos" class="perfil mx-auto" aria-labelledby="titulo-termos" hidden>
+        <button id="voltar-termos" class="btn perfil-voltar px-0" type="button">← Voltar ao login</button>
+        <h1 id="titulo-termos" class="h2 text-center mt-3 mb-4" tabindex="-1">Termos de uso e privacidade</h1>
+
+        <form id="formulario-termos" class="login-form">
+          <p>O FOCUS+ pode utilizar a câmera do seu dispositivo durante suas sessões para registrar informações observacionais.</p>
+
+          <h2 class="h5">O que pode ser observado:</h2>
+          <ul>
+            <li><strong>Direção visual</strong> — Mudanças observáveis na direção do olhar</li>
+            <li><strong>Postura</strong> — Alterações observáveis na posição corporal</li>
+            <li><strong>Presença</strong> — Períodos em que você deixa de estar visível para a câmera</li>
+            <li><strong>Expressões faciais</strong> — Alterações observáveis na expressão</li>
+          </ul>
+
+          <p class="border rounded-3 p-3"><strong>Importante:</strong> Esses registros não representam, isoladamente, diagnóstico, emoção, distração ou produtividade. O FOCUS+ não diagnostica TDAH nem substitui avaliação profissional.</p>
+
+          <ul class="list-unstyled mb-4">
+            <li class="mb-2"><span aria-hidden="true">✓</span> Você será informado quando a câmera estiver ativa</li>
+            <li class="mb-2"><span aria-hidden="true">✓</span> Você pode pausar ou interromper o monitoramento a qualquer momento</li>
+            <li class="mb-2"><span aria-hidden="true">✓</span> Somente seu profissional de saúde vinculado pode ver esses dados</li>
+            <li><span aria-hidden="true">✓</span> Você pode revogar este consentimento quando desejar</li>
+          </ul>
+
+          <div class="form-check mb-4">
+            <input id="aceitar-termos" class="form-check-input" type="checkbox" required>
+            <label for="aceitar-termos" class="form-check-label">Li e concordo com o uso da câmera para o monitoramento das sessões</label>
+          </div>
+          <button class="btn login-entrar rounded-pill w-100" type="submit">Aceitar e continuar</button>
+        </form>
+      </section>
+
+      <section id="tela-monitoramento" class="perfil mx-auto" aria-labelledby="titulo-monitoramento" hidden>
+        <h1 id="titulo-monitoramento" class="h2 text-center mb-4" tabindex="-1">Como funciona o monitoramento?</h1>
+
+        <div class="row row-cols-1 row-cols-sm-2 g-3">
+          <div class="col">
+            <article class="monitoramento-card h-100">
+              <h2 class="h5">Direção visual</h2>
+              <p class="mb-0">Registra mudanças observáveis na direção do olhar/campo visual.</p>
+            </article>
+          </div>
+          <div class="col">
+            <article class="monitoramento-card h-100">
+              <h2 class="h5">Postura</h2>
+              <p class="mb-0">Registra alterações observáveis na posição corporal.</p>
+            </article>
+          </div>
+          <div class="col">
+            <article class="monitoramento-card h-100">
+              <h2 class="h5">Presença</h2>
+              <p class="mb-0">Registra períodos em que a pessoa deixa de estar visível para a câmera.</p>
+            </article>
+          </div>
+          <div class="col">
+            <article class="monitoramento-card h-100">
+              <h2 class="h5">Expressões faciais</h2>
+              <p class="mb-0">Registra alterações observáveis na expressão facial.</p>
+            </article>
+          </div>
+        </div>
+
+        <p class="monitoramento-aviso rounded-3 p-3 my-4"><strong>Esses registros não representam, isoladamente, diagnóstico, emoção, distração ou produtividade.</strong></p>
+        <button id="continuar-monitoramento" class="btn login-entrar rounded-pill d-block mx-auto px-5" type="button">Continuar</button>
+      </section>
+
+
+      <section id="tela-teste-camera" class="perfil mx-auto" aria-labelledby="titulo-teste-camera" hidden>
+        <h1 id="titulo-teste-camera" class="h2 text-center mb-3" tabindex="-1">Prévia da câmera</h1>
+        <p class="text-center mb-4">Posicione-se de maneira confortável diante da câmera</p>
+
+        <div id="previa-camera" class="previa-camera rounded-4 mb-4">
+          <p class="mb-0">Prévia indisponível nesta demonstração</p>
+        </div>
+
+        <ul class="list-group mb-4" id="verificacoes-camera" aria-label="Verificações da câmera">
+          <li class="list-group-item d-flex justify-content-between align-items-center gap-2" data-verificacao="rosto">
+            <span>Rosto visível</span><span class="badge text-bg-light">Pendente</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center gap-2" data-verificacao="iluminacao">
+            <span>Iluminação suficiente</span><span class="badge text-bg-light">Pendente</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center gap-2" data-verificacao="enquadramento">
+            <span>Enquadramento adequado</span><span class="badge text-bg-light">Pendente</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center gap-2" data-verificacao="camera">
+            <span>Câmera funcionando</span><span class="badge text-bg-light">Pendente</span>
+          </li>
+        </ul>
+
+        <p class="text-center" role="status"><strong id="camera-pronta" hidden>✓ Tudo pronto!</strong></p>
+        <button id="continuar-teste-camera" class="btn login-entrar rounded-pill d-block mx-auto px-5" type="button">Continuar</button>
+      </section>
+
+
+      <section id="tela-configuracao-telas" class="perfil w-100 mx-auto" aria-labelledby="titulo-configuracao-telas" hidden>
+        <h1 id="titulo-configuracao-telas" class="h2 text-center mb-4" tabindex="-1">Configuração de telas</h1>
+
+        <form id="formulario-configuracao-telas" class="login-form">
+          <fieldset aria-describedby="ajuda-configuracao-telas">
+            <legend class="h5 mb-3">Você utiliza mais de uma tela durante o trabalho?</legend>
+            <div class="d-grid gap-2">
+              <input class="btn-check" id="uma-tela" name="quantidadeTelas" type="radio" value="1" required>
+              <label class="btn btn-outline-success rounded-3 text-start py-2" for="uma-tela">Uma tela</label>
+
+              <input class="btn-check" id="duas-telas" name="quantidadeTelas" type="radio" value="2">
+              <label class="btn btn-outline-success rounded-3 text-start py-2" for="duas-telas">Duas telas</label>
+
+              <input class="btn-check" id="tres-ou-mais-telas" name="quantidadeTelas" type="radio" value="3+" >
+              <label class="btn btn-outline-success rounded-3 text-start py-2" for="tres-ou-mais-telas">Três ou mais telas</label>
+            </div>
+          </fieldset>
+          <p id="ajuda-configuracao-telas" class="small mt-3 mb-4">Essa informação ajuda a contextualizar mudanças na direção visual durante a sessão.</p>
+          <button class="btn login-entrar rounded-pill w-100" type="submit">Continuar</button>
+        </form>
+      </section>
+
+
+      <section id="tela-acesso-paciente" class="perfil mx-auto" aria-labelledby="titulo-acesso-paciente" hidden>
+        <header class="paciente-barra mb-4">
+          <button id="abrir-menu-paciente" class="btn paciente-controle" type="button" aria-label="Abrir menu" aria-haspopup="dialog" aria-controls="menu-paciente">☰</button>
+          <span class="paciente-marca">FOCUS+</span>
+          <div class="paciente-acoes">
+            <button id="tema-paciente" class="btn paciente-controle" type="button" aria-label="Modo escuro" aria-pressed="false">
+              <span aria-hidden="true">◐</span>
+            </button>
+            <details id="notificacoes-paciente">
+              <summary class="btn paciente-controle" aria-label="Notificações">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>
+                </svg>
+              </summary>
+              <div class="paciente-notificacoes">
+                <h2 class="h6">Notificações</h2>
+                <p class="small mb-0">Nenhuma notificação por enquanto.</p>
+              </div>
+            </details>
+          </div>
+        </header>
+
+        <dialog id="menu-paciente" class="paciente-menu" aria-labelledby="titulo-menu-paciente">
+          <div class="paciente-menu-conteudo">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <h2 id="titulo-menu-paciente" class="paciente-marca mb-0">FOCUS+</h2>
+              <button id="fechar-menu-paciente" class="btn paciente-controle" type="button" aria-label="Fechar menu" autofocus>×</button>
+            </div>
+            <nav class="paciente-menu-opcoes" aria-label="Navegação do paciente">
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-acesso-paciente">Início</button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-historico-paciente">Histórico</button>
+              <button class="dropdown-item" type="button" disabled>Minha conta</button>
+              <button class="dropdown-item" type="button" disabled>Sobre o tratamento</button>
+              <button class="dropdown-item" type="button" disabled>Câmera e segurança</button>
+              <button class="dropdown-item" type="button" disabled>Configurações</button>
+            </nav>
+            <button id="sair-paciente" class="btn paciente-controle paciente-sair" type="button">Sair</button>
+          </div>
+        </dialog>
+
+
+        <div id="inicio-paciente">
+        <header class="mb-4">
+          <h1 id="titulo-acesso-paciente" class="display-5 mb-2" tabindex="-1">Olá, Maria</h1>
+          <p class="mb-0">Como você está hoje?</p>
+        </header>
+
+        <article class="paciente-card paciente-preparar mb-3">
+          <h2 class="h4">Preparar sessão</h2>
+          <p class="mb-3">Responda algumas perguntas antes de começar.</p>
+          <button id="comecar-checklist" class="btn login-entrar rounded-pill px-4" type="button">Começar checklist</button>
+        </article>
+
+        <div class="row g-3">
+          <div class="col-12 col-sm-6">
+            <article class="paciente-card h-100">
+              <h2 class="h5">Última sessão</h2>
+              <p class="mb-1">Hoje, 09:30</p>
+              <p class="mb-3">Duração: 2h30min</p>
+              <span class="paciente-status rounded-pill px-3 py-1">Registro completo</span>
+            </article>
+          </div>
+          <div class="col-12 col-sm-6">
+            <article class="paciente-card h-100">
+              <h2 id="titulo-historico-paciente" class="h5" tabindex="-1">Histórico</h2>
+              <p class="mb-0">Ver suas sessões anteriores</p>
+            </article>
+          </div>
+          <div class="col-12">
+            <article class="paciente-card d-flex align-items-center gap-3">
+              <span class="perfil-icone flex-shrink-0"><img src="/src/img/person.svg" width="24" height="24" alt=""></span>
+              <div>
+                <h2 class="h5 mb-1">Profissional vinculado</h2>
+                <p class="mb-0">Dra. Aline Martins</p>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        </div>
+        <section id="checklist-paciente" aria-labelledby="titulo-checklist" hidden>
+          <h1 id="titulo-checklist" class="h2" tabindex="-1">Checklist de hoje</h1>
+          <p>Antes de começar, conte como você está neste momento.</p>
+          <div class="d-flex justify-content-between small mb-2">
+            <span id="checklist-etapa"></span>
+            <span id="checklist-percentual"></span>
+          </div>
+          <progress id="checklist-progresso" class="checklist-progresso mb-4" max="7" value="1" aria-label="Progresso do checklist"></progress>
+          <article class="paciente-card">
+            <p id="checklist-topico" class="paciente-status rounded-pill px-3 py-1 mb-3"></p>
+            <h2 id="checklist-pergunta" class="h4 mb-3" tabindex="-1"></h2>
+            <ul id="checklist-emocional" class="mb-4 ps-3" hidden>
+              <li><strong>Negativo:</strong> ansiedade, estresse, tristeza ou irritação.</li>
+              <li><strong>Neutro:</strong> ausência de predominância emocional positiva ou negativa.</li>
+              <li><strong>Positivo:</strong> tranquilidade, satisfação ou bem-estar.</li>
+            </ul>
+            <div id="checklist-opcoes" class="d-grid gap-2" role="group" aria-labelledby="checklist-pergunta"></div>
+          </article>
+          <button id="checklist-voltar" class="btn paciente-controle mt-3" type="button">← Pergunta anterior</button>
+        </section>
+        <section id="checklist-concluido" class="paciente-card" aria-labelledby="titulo-checklist-concluido" hidden>
+          <header class="text-center mb-4">
+            <span class="paciente-status rounded-circle p-3 mb-3">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="m8 12 2.5 2.5L16 9"/>
+              </svg>
+            </span>
+            <h1 id="titulo-checklist-concluido" class="h2" tabindex="-1">Checklist concluído</h1>
+            <p class="mb-0">Suas respostas foram registradas.</p>
+          </header>
+
+          <h2 class="h5">Resumo das respostas</h2>
+          <dl id="resumo-checklist" class="list-group list-group-flush mb-4"></dl>
+          <button id="preparar-sessao" class="btn login-entrar rounded-pill w-100" type="button" disabled>Preparar sessão</button>
+        </section>
+      </section>
+
+    </main>
+    
+    
+  </body>
+</html>
