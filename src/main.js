@@ -141,13 +141,27 @@ menuPaciente.addEventListener('click', (evento) => {
   const destino = evento.target.closest('[data-destino-paciente]')
   if (!destino) return
   menuPaciente.close()
-  mostrarInicioPaciente(document.getElementById(destino.dataset.destinoPaciente))
+  const idDestino = destino.dataset.destinoPaciente
+  const tituloDestino = document.getElementById(idDestino)
+  const telaDestino = telasMenuPaciente[idDestino]
+  if (telaDestino) {
+    mostrarTelaMenuPaciente(telaDestino, tituloDestino)
+    return
+  }
+  mostrarInicioPaciente(tituloDestino)
 })
 
 document.querySelector('#sair-paciente').addEventListener('click', () => {
   menuPaciente.close()
   formularioLogin.reset()
   fecharTelaSessao()
+  fecharEdicaoConta()
+  ocultarTelasMenuPaciente()
+  limparFotoPaciente()
+  restaurarContaDemonstracao()
+  sessoesFinalizadas.length = 0
+  filtroHistorico.reset()
+  renderizarHistorico()
   ultimoPerfil = null
   respostasChecklist.length = 0
   checklistPaciente.hidden = true
@@ -193,6 +207,8 @@ const respostasChecklist = []
 let indiceChecklist = 0
 
 function mostrarInicioPaciente(foco = tituloAcessoPaciente) {
+  fecharEdicaoConta()
+  ocultarTelasMenuPaciente()
   fecharTelaSessao()
   checklistPaciente.hidden = true
   checklistConcluido.hidden = true
@@ -337,7 +353,218 @@ botaoAlternarSessao.addEventListener('click', () => {
 botaoFinalizarSessao.addEventListener('click', () => {
   pararCronometro()
   duracaoSessaoFinalizada.textContent = tempoSessao.textContent
+  registrarSessaoFinalizada()
   trocarTela(telaSessao, telaSessaoFinalizada, tituloSessaoFinalizada)
 })
 
 botaoVoltarSessao.addEventListener('click', () => mostrarInicioPaciente())
+
+const telasMenuPaciente = {
+  'titulo-meu-historico': document.querySelector('#historico-paciente'),
+  'titulo-conta-paciente': document.querySelector('#conta-paciente'),
+  'titulo-tratamento-paciente': document.querySelector('#tratamento-paciente'),
+  'titulo-seguranca-paciente': document.querySelector('#seguranca-paciente'),
+}
+const fotoContaPaciente = document.querySelector('#foto-conta-paciente')
+const arquivoFotoPaciente = document.querySelector('#arquivo-foto-paciente')
+const statusFotoPaciente = document.querySelector('#status-foto-paciente')
+const fotoPadraoPaciente = fotoContaPaciente.getAttribute('src')
+let fotoLocalPaciente = null
+
+function ocultarTelasMenuPaciente() {
+  for (const tela of Object.values(telasMenuPaciente)) tela.hidden = true
+}
+
+function mostrarTelaMenuPaciente(tela, titulo) {
+  fecharEdicaoConta()
+  ocultarTelasMenuPaciente()
+  fecharTelaSessao()
+  checklistPaciente.hidden = true
+  checklistConcluido.hidden = true
+  trocarTela(inicioPaciente, tela, titulo)
+}
+
+function limparFotoPaciente() {
+  if (fotoLocalPaciente !== null) URL.revokeObjectURL(fotoLocalPaciente)
+  fotoLocalPaciente = null
+  fotoContaPaciente.src = fotoPadraoPaciente
+  fotoContaPaciente.classList.remove('conta-foto-local')
+  arquivoFotoPaciente.value = ''
+  statusFotoPaciente.textContent = ''
+}
+
+document.querySelector('#alterar-foto-paciente').addEventListener('click', () => {
+  arquivoFotoPaciente.click()
+})
+
+arquivoFotoPaciente.addEventListener('change', () => {
+  const [arquivo] = arquivoFotoPaciente.files
+  if (!arquivo) return
+
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(arquivo.type)) {
+    statusFotoPaciente.textContent = 'Escolha uma imagem JPEG, PNG ou WebP.'
+    arquivoFotoPaciente.value = ''
+    return
+  }
+
+  limparFotoPaciente()
+  fotoLocalPaciente = URL.createObjectURL(arquivo)
+  fotoContaPaciente.src = fotoLocalPaciente
+  fotoContaPaciente.classList.add('conta-foto-local')
+  statusFotoPaciente.textContent = 'Prévia da foto atualizada nesta visita.'
+})
+
+const botaoEditarConta = document.querySelector('#editar-conta-paciente')
+const dadosConta = document.querySelector('#dados-conta-paciente')
+const formularioConta = document.querySelector('#form-editar-conta')
+const statusEdicaoConta = document.querySelector('#status-edicao-conta')
+const campoNomeConta = formularioConta.elements.nome
+const dadosIniciaisConta = Object.fromEntries(new FormData(formularioConta))
+let dadosSalvosConta = { ...dadosIniciaisConta }
+
+function renderizarDadosConta() {
+  const exibicao = {
+    ...dadosSalvosConta,
+    telefone: dadosSalvosConta.telefone || 'Não informado',
+    nascimento: dadosSalvosConta.nascimento
+      ? dadosSalvosConta.nascimento.split('-').reverse().join('/')
+      : 'Não informada',
+  }
+
+  for (const elemento of dadosConta.querySelectorAll('[data-campo-conta]')) {
+    elemento.textContent = exibicao[elemento.dataset.campoConta]
+  }
+
+  const nome = dadosSalvosConta.nome
+  document.querySelector('#nome-avatar-paciente').textContent = nome
+  tituloAcessoPaciente.textContent = 'Olá, ' + nome.split(/\s+/)[0]
+}
+
+function fecharEdicaoConta() {
+  formularioConta.hidden = true
+  dadosConta.hidden = false
+  botaoEditarConta.hidden = false
+  statusEdicaoConta.textContent = ''
+  campoNomeConta.setCustomValidity('')
+}
+
+function restaurarContaDemonstracao() {
+  dadosSalvosConta = { ...dadosIniciaisConta }
+  renderizarDadosConta()
+}
+
+botaoEditarConta.addEventListener('click', () => {
+  for (const [campo, valor] of Object.entries(dadosSalvosConta)) {
+    formularioConta.elements.namedItem(campo).value = valor
+  }
+  statusEdicaoConta.textContent = ''
+  dadosConta.hidden = true
+  botaoEditarConta.hidden = true
+  formularioConta.hidden = false
+  campoNomeConta.focus()
+})
+
+campoNomeConta.addEventListener('input', () => campoNomeConta.setCustomValidity(''))
+
+document.querySelector('#cancelar-edicao-conta').addEventListener('click', () => {
+  fecharEdicaoConta()
+  botaoEditarConta.focus()
+})
+
+formularioConta.addEventListener('submit', (evento) => {
+  evento.preventDefault()
+  const dados = Object.fromEntries(new FormData(formularioConta))
+  dados.nome = dados.nome.trim()
+  dados.telefone = dados.telefone.trim()
+  if (!dados.nome) {
+    campoNomeConta.setCustomValidity('Informe seu nome completo.')
+    campoNomeConta.reportValidity()
+    return
+  }
+  dadosSalvosConta = dados
+  renderizarDadosConta()
+  fecharEdicaoConta()
+  statusEdicaoConta.textContent = 'Informações atualizadas nesta demonstração.'
+  botaoEditarConta.focus()
+})
+
+const sessoesFinalizadas = []
+const filtroHistorico = document.querySelector('#filtro-historico')
+const datasHistorico = document.querySelector('#datas-historico')
+const dataDeHistorico = document.querySelector('#historico-de')
+const dataAteHistorico = document.querySelector('#historico-ate')
+const estadoHistorico = document.querySelector('#estado-historico')
+const listaHistorico = document.querySelector('#lista-historico')
+const modeloHistorico = document.querySelector('#item-historico')
+const formatoDia = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })
+
+function chaveDataLocal(data) {
+  return [
+    data.getFullYear(),
+    String(data.getMonth() + 1).padStart(2, '0'),
+    String(data.getDate()).padStart(2, '0'),
+  ].join('-')
+}
+
+function registrarSessaoFinalizada() {
+  sessoesFinalizadas.unshift({
+    numero: tituloSessao.textContent,
+    data: new Date(),
+    duracao: tempoSessao.textContent,
+    completa: tempoAcumulado >= 2 * 60 * 60 * 1000,
+    respostas: [...respostasChecklist],
+  })
+  renderizarHistorico()
+}
+
+function criarItemHistorico(sessao) {
+  const item = modeloHistorico.content.cloneNode(true)
+  const data = formatoDia.format(sessao.data).replace('.', '')
+  item.querySelector('[data-sessao-data]').textContent = data.charAt(0).toUpperCase() + data.slice(1)
+  item.querySelector('[data-sessao-status]').textContent = sessao.completa ? 'Completo' : 'Parcial'
+  item.querySelector('[data-sessao-duracao]').textContent = sessao.duracao
+  item.querySelector('[data-sessao-numero]').textContent = sessao.numero
+
+  const checklist = item.querySelector('[data-sessao-checklist]')
+  perguntasChecklist.forEach(([topico], indice) => {
+    const rotulo = document.createElement('dt')
+    rotulo.textContent = topico
+    const resposta = document.createElement('dd')
+    resposta.textContent = sessao.respostas[indice]
+    checklist.append(rotulo, resposta)
+  })
+  return item
+}
+
+function renderizarHistorico() {
+  const periodo = new FormData(filtroHistorico).get('periodo')
+  const personalizado = periodo === 'personalizado'
+  datasHistorico.hidden = !personalizado
+  listaHistorico.replaceChildren()
+
+  const hoje = new Date()
+  const inicio = new Date(hoje)
+  if (periodo === 'semana') inicio.setDate(hoje.getDate() - (hoje.getDay() + 6) % 7)
+  if (periodo === 'mes') inicio.setDate(1)
+
+  const de = personalizado ? dataDeHistorico.value : chaveDataLocal(inicio)
+  const ate = personalizado ? dataAteHistorico.value : chaveDataLocal(hoje)
+  if (!de || !ate || de > ate) {
+    estadoHistorico.textContent = 'Selecione um intervalo de datas válido.'
+    return
+  }
+
+  const sessoesDoPeriodo = sessoesFinalizadas.filter(({ data }) => {
+    const dia = chaveDataLocal(data)
+    return dia >= de && dia <= ate
+  })
+  estadoHistorico.textContent = sessoesDoPeriodo.length ? '' : 'Nenhuma sessão finalizada neste período.'
+  listaHistorico.replaceChildren(...sessoesDoPeriodo.map(criarItemHistorico))
+}
+
+filtroHistorico.addEventListener('change', renderizarHistorico)
+filtroHistorico.addEventListener('submit', (evento) => evento.preventDefault())
+document.querySelector('#abrir-historico-paciente').addEventListener('click', () => {
+  mostrarTelaMenuPaciente(telasMenuPaciente['titulo-meu-historico'], document.querySelector('#titulo-meu-historico'))
+})
+renderizarHistorico()

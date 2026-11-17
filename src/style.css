@@ -411,3 +411,33 @@ body:has(#tela-acesso-paciente[data-bs-theme="dark"]:not([hidden])) {
   gap: .5rem 1rem;
   background: var(--paciente-destaque);
 }
+
+.conta-avatar {
+  display: grid;
+  place-items: center;
+  width: 6rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--paciente-destaque);
+}
+
+.conta-avatar img {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.conta-avatar .conta-foto-local {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.conta-dados dd {
+  margin-bottom: .875rem;
+  overflow-wrap: anywhere;
+}
+
+.conta-dados dd:last-child {
+  margin-bottom: 0;
+}

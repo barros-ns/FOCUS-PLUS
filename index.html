@@ -259,10 +259,10 @@
             </div>
             <nav class="paciente-menu-opcoes" aria-label="Navegação do paciente">
               <button class="dropdown-item" type="button" data-destino-paciente="titulo-acesso-paciente">Início</button>
-              <button class="dropdown-item" type="button" data-destino-paciente="titulo-historico-paciente">Histórico</button>
-              <button class="dropdown-item" type="button" disabled>Minha conta</button>
-              <button class="dropdown-item" type="button" disabled>Sobre o tratamento</button>
-              <button class="dropdown-item" type="button" disabled>Câmera e segurança</button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-meu-historico">Histórico</button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-conta-paciente">Minha conta</button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-tratamento-paciente">Sobre o tratamento</button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-seguranca-paciente">Câmera e segurança</button>
               <button class="dropdown-item" type="button" disabled>Configurações</button>
             </nav>
             <button id="sair-paciente" class="btn paciente-controle paciente-sair" type="button">Sair</button>
@@ -295,7 +295,7 @@
           <div class="col-12 col-sm-6">
             <article class="paciente-card h-100">
               <h2 id="titulo-historico-paciente" class="h5" tabindex="-1">Histórico</h2>
-              <p class="mb-0">Ver suas sessões anteriores</p>
+              <button id="abrir-historico-paciente" class="btn paciente-controle rounded-pill" type="button">Ver suas sessões anteriores</button>
             </article>
           </div>
           <div class="col-12">
@@ -310,6 +310,211 @@
         </div>
 
         </div>
+        <!-- Minha conta: foto, informações pessoais e segurança -->
+        <section id="conta-paciente" aria-labelledby="titulo-conta-paciente" hidden>
+          <header class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-4">
+            <div>
+              <h1 id="titulo-conta-paciente" class="h2" tabindex="-1">Minha conta</h1>
+              <p class="mb-0">Gerencie suas informações pessoais</p>
+            </div>
+            <button id="editar-conta-paciente" class="btn paciente-controle rounded-pill px-3" type="button">Editar</button>
+          </header>
+
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-5">
+              <div class="paciente-card h-100 text-center">
+                <div class="conta-avatar mx-auto mb-3">
+                  <img id="foto-conta-paciente" src="/src/img/person.svg" alt="">
+                </div>
+                <p id="nome-avatar-paciente" class="h5 mb-3">Maria</p>
+                <button id="alterar-foto-paciente" class="btn paciente-controle rounded-pill" type="button">Alterar foto</button>
+                <input id="arquivo-foto-paciente" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Escolher foto de perfil" hidden>
+                <p id="status-foto-paciente" class="small mt-2 mb-0" role="status"></p>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-7">
+              <article class="paciente-card h-100">
+                <h2 class="h5 mb-3">Informações pessoais</h2>
+                <dl id="dados-conta-paciente" class="conta-dados mb-0">
+                  <dt>Nome completo</dt>
+                  <dd data-campo-conta="nome">Maria</dd>
+                  <dt>E-mail</dt>
+                  <dd data-campo-conta="email">maria@example.com</dd>
+                  <dt>Telefone</dt>
+                  <dd data-campo-conta="telefone">Não informado</dd>
+                  <dt>Data de nascimento</dt>
+                  <dd data-campo-conta="nascimento">Não informada</dd>
+                  <dt>Profissional vinculado</dt>
+                  <dd>Dra. Aline Martins</dd>
+                </dl>
+                <form id="form-editar-conta" hidden>
+                  <div class="mb-3">
+                    <label for="editar-conta-nome" class="form-label">Nome completo</label>
+                    <input id="editar-conta-nome" name="nome" class="form-control" autocomplete="name" value="Maria" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="editar-conta-email" class="form-label">E-mail</label>
+                    <input id="editar-conta-email" name="email" class="form-control" type="email" autocomplete="email" value="maria@example.com" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="editar-conta-telefone" class="form-label">Telefone</label>
+                    <input id="editar-conta-telefone" name="telefone" class="form-control" type="tel" autocomplete="tel">
+                  </div>
+                  <div class="mb-3">
+                    <label for="editar-conta-nascimento" class="form-label">Data de nascimento</label>
+                    <input id="editar-conta-nascimento" name="nascimento" class="form-control" type="date" autocomplete="bday">
+                  </div>
+                  <p class="mb-3">Profissional vinculado<br>Dra. Aline Martins</p>
+                  <div class="d-flex flex-wrap justify-content-end gap-2">
+                    <button id="cancelar-edicao-conta" class="btn paciente-controle rounded-pill" type="button">Cancelar</button>
+                    <button class="btn login-entrar rounded-pill px-4" type="submit">Salvar</button>
+                  </div>
+                </form>
+                <p id="status-edicao-conta" class="small mt-3 mb-0 login-status" role="status"></p>
+              </article>
+            </div>
+          </div>
+
+          <article class="paciente-card">
+            <h2 class="h5 mb-3">Segurança</h2>
+            <button class="btn paciente-controle rounded-pill" type="button" disabled aria-describedby="ajuda-alterar-senha">Alterar senha</button>
+            <p id="ajuda-alterar-senha" class="small mt-2 mb-0">Disponível após a integração da autenticação.</p>
+          </article>
+        </section>
+
+
+        <!-- Histórico: filtros por período e detalhes das sessões finalizadas -->
+        <section id="historico-paciente" aria-labelledby="titulo-meu-historico" hidden>
+          <h1 id="titulo-meu-historico" class="h2 mb-4" tabindex="-1">Meu histórico</h1>
+          <form id="filtro-historico" class="mb-4">
+            <fieldset>
+              <legend class="visually-hidden">Período das sessões</legend>
+              <div class="d-flex flex-wrap gap-2">
+                <input id="historico-semana" class="btn-check" name="periodo" type="radio" value="semana" checked>
+                <label class="btn paciente-controle rounded-pill" for="historico-semana">Semana</label>
+                <input id="historico-mes" class="btn-check" name="periodo" type="radio" value="mes">
+                <label class="btn paciente-controle rounded-pill" for="historico-mes">Mês</label>
+                <input id="historico-personalizado" class="btn-check" name="periodo" type="radio" value="personalizado">
+                <label class="btn paciente-controle rounded-pill" for="historico-personalizado">Período personalizado</label>
+              </div>
+            </fieldset>
+            <div id="datas-historico" class="mt-3" hidden>
+              <div class="row g-2">
+                <div class="col-12 col-sm-6">
+                  <label class="form-label" for="historico-de">De</label>
+                  <input id="historico-de" type="date" class="form-control">
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label" for="historico-ate">Até</label>
+                  <input id="historico-ate" type="date" class="form-control">
+                </div>
+              </div>
+            </div>
+          </form>
+          <p id="estado-historico" role="status"></p>
+          <div id="lista-historico" class="d-grid gap-3"></div>
+          <template id="item-historico">
+            <details class="paciente-card">
+              <summary>
+                <span class="h5" data-sessao-data></span>
+                <span class="paciente-status rounded-pill ms-1 px-2 py-1" data-sessao-status></span>
+                <span class="d-block mt-2">Duração: <strong data-sessao-duracao></strong></span>
+              </summary>
+              <div class="border-top mt-3 pt-3">
+                <h2 class="h6" data-sessao-numero></h2>
+                <p class="mb-1">Check-ins: <strong>0 registrados</strong></p>
+                <p>Qualidade da câmera no geral: <strong>Indisponível</strong></p>
+                <h3 class="h6">Respostas do checklist</h3>
+                <dl class="mb-0" data-sessao-checklist></dl>
+              </div>
+            </details>
+          </template>
+        </section>
+
+
+        <!-- Sobre o tratamento: finalidade, funcionamento e limites do FOCUS+ -->
+        <section id="tratamento-paciente" aria-labelledby="titulo-tratamento-paciente" hidden>
+          <header class="mb-4">
+            <h1 id="titulo-tratamento-paciente" class="h2" tabindex="-1">Sobre o tratamento</h1>
+            <p class="mb-0">Como o FOCUS+ funciona</p>
+          </header>
+
+          <div class="d-grid gap-3">
+            <article class="paciente-card">
+              <h2 class="h5">O que é o FOCUS+?</h2>
+              <p>O FOCUS+ é um aplicativo de apoio ao acompanhamento de pessoas com TDAH durante atividades de trabalho, especialmente em contexto de home office.</p>
+              <p class="mb-0">Ele funciona como ferramenta complementar ao acompanhamento profissional, registrando e organizando informações que podem auxiliar na compreensão de padrões de comportamento.</p>
+            </article>
+
+            <article class="paciente-card">
+              <h2 class="h5 mb-3">Como funciona o monitoramento?</h2>
+              <h3 class="h6">Checklist diário</h3>
+              <p>Antes de cada sessão, você responde perguntas rápidas sobre seu estado atual (sono, cansaço, atenção, etc.).</p>
+              <h3 class="h6">Observação durante a sessão</h3>
+              <p>Com seu consentimento, a câmera registra informações observacionais como mudanças de direção visual, postura e presença diante da câmera.</p>
+              <h3 class="h6">Check-ins rápidos</h3>
+              <p class="mb-0">Durante a sessão, você pode registrar rapidamente como está sua atenção naquele momento.</p>
+            </article>
+
+            <article class="paciente-card paciente-preparar">
+              <h2 class="h5">O que o FOCUS+ NÃO faz</h2>
+              <ul class="mb-0">
+                <li>Não diagnostica TDAH</li>
+                <li>Não substitui avaliação profissional</li>
+                <li>Não determina automaticamente se você está distraído</li>
+                <li>Não avalia produtividade profissional</li>
+                <li>Não recomenda ou altera medicamentos</li>
+              </ul>
+            </article>
+
+            <article class="paciente-card">
+              <h2 class="h5">Interpretação dos dados</h2>
+              <p class="mb-0">Todos os dados coletados são apresentados ao seu profissional de saúde de forma organizada. É o profissional quem interpreta essas informações em conjunto com o contexto do seu acompanhamento.</p>
+            </article>
+          </div>
+        </section>
+
+        <!-- Câmera e segurança: controles da câmera e privacidade -->
+        <section id="seguranca-paciente" aria-labelledby="titulo-seguranca-paciente" hidden>
+          <header class="mb-4">
+            <h1 id="titulo-seguranca-paciente" class="h2" tabindex="-1">Câmera e Segurança</h1>
+            <p class="mb-0">Como protegemos suas informações</p>
+          </header>
+
+          <p class="small">A demonstração ainda não acessa a câmera nem envia registros. Os controles e as proteções descritos abaixo fazem parte da versão em desenvolvimento.</p>
+
+          <div class="d-grid gap-3">
+            <article class="paciente-card">
+              <h2 class="h5 mb-3">Uso da câmera</h2>
+              <h3 class="h6">Quando a câmera é utilizada</h3>
+              <p>A câmera é ativada apenas durante sessões de trabalho e somente após seu consentimento explícito. Você sempre saberá quando a câmera está ativa através de um indicador visual claro.</p>
+              <h3 class="h6">O que é observado</h3>
+              <ul>
+                <li>Direção visual (mudanças observáveis na direção do olhar)</li>
+                <li>Postura (alterações na posição corporal)</li>
+                <li>Presença (quando você deixa de estar visível para a câmera)</li>
+                <li>Expressões faciais (alterações observáveis)</li>
+              </ul>
+              <h3 class="h6">Controle total</h3>
+              <p class="mb-0">Você pode pausar ou interromper o monitoramento a qualquer momento. Você também pode revogar o consentimento quando desejar.</p>
+            </article>
+
+            <article class="paciente-card">
+              <h2 class="h5 mb-3">Privacidade dos dados</h2>
+              <h3 class="h6">Apenas seu profissional vê seus dados</h3>
+              <p>Somente o profissional de saúde vinculado à sua conta pode acessar suas informações.</p>
+              <h3 class="h6">Dados criptografados</h3>
+              <p>A criptografia de ponta a ponta é um requisito a validar na integração.</p>
+              <h3 class="h6">Sem compartilhamento com terceiros</h3>
+              <p>Seus dados nunca são vendidos ou compartilhados com terceiros.</p>
+              <h3 class="h6">Você controla seus dados</h3>
+              <p class="mb-0">Você pode solicitar a exportação ou exclusão de seus dados a qualquer momento.</p>
+            </article>
+          </div>
+        </section>
+
+
         <!-- Checklist pré-sessão: progresso, pergunta atual e respostas -->
         <section id="checklist-paciente" aria-labelledby="titulo-checklist" hidden>
           <h1 id="titulo-checklist" class="h2" tabindex="-1">Checklist de hoje</h1>
