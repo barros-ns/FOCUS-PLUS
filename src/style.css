@@ -203,7 +203,7 @@ main {
   text-align: center;
 }
 
-#tela-acesso-paciente {
+:is(#tela-acesso-paciente, #tela-profissional) {
   width: 100%;
   max-width: 48rem;
 }
@@ -231,11 +231,11 @@ main {
   font-size: .875rem;
 }
 
-main:has(#tela-acesso-paciente:not([hidden])) {
+main:has(:is(#tela-acesso-paciente, #tela-profissional):not([hidden])) {
   align-items: start;
 }
 
-#tela-acesso-paciente {
+:is(#tela-acesso-paciente, #tela-profissional) {
   --paciente-fundo: #efe9de;
   --paciente-superficie: #fbf7ee;
   --paciente-destaque: #e5e9df;
@@ -245,7 +245,7 @@ main:has(#tela-acesso-paciente:not([hidden])) {
   color: var(--paciente-texto);
 }
 
-#tela-acesso-paciente[data-bs-theme="dark"] {
+:is(#tela-acesso-paciente, #tela-profissional)[data-bs-theme="dark"] {
   --paciente-fundo: #161f1b;
   --paciente-superficie: #202d26;
   --paciente-destaque: #2a3c32;
@@ -254,21 +254,21 @@ main:has(#tela-acesso-paciente:not([hidden])) {
   --paciente-borda: #4c6153;
 }
 
-body:has(#tela-acesso-paciente[data-bs-theme="dark"]:not([hidden])) {
+body:has(:is(#tela-acesso-paciente, #tela-profissional)[data-bs-theme="dark"]:not([hidden])) {
   background: #161f1b;
 }
 
-#tela-acesso-paciente .paciente-card {
+:is(#tela-acesso-paciente, #tela-profissional) .paciente-card {
   background: var(--paciente-superficie);
   border-color: var(--paciente-borda);
 }
 
-#tela-acesso-paciente .paciente-preparar,
-#tela-acesso-paciente .paciente-status {
+:is(#tela-acesso-paciente, #tela-profissional) .paciente-preparar,
+:is(#tela-acesso-paciente, #tela-profissional) .paciente-status {
   background: var(--paciente-destaque);
 }
 
-#tela-acesso-paciente :is(.paciente-card h2, .paciente-status) {
+:is(#tela-acesso-paciente, #tela-profissional) :is(.paciente-card h2, .paciente-status) {
   color: var(--paciente-acento);
 }
 
@@ -284,7 +284,7 @@ body:has(#tela-acesso-paciente[data-bs-theme="dark"]:not([hidden])) {
   font: 600 1.5rem Georgia, 'Times New Roman', serif;
 }
 
-#abrir-menu-paciente {
+:is(#abrir-menu-paciente, #abrir-menu-profissional) {
   justify-self: start;
 }
 
@@ -307,16 +307,16 @@ body:has(#tela-acesso-paciente[data-bs-theme="dark"]:not([hidden])) {
   border-color: var(--paciente-borda);
 }
 
-#notificacoes-paciente {
+:is(#notificacoes-paciente, #notificacoes-profissional) {
   position: relative;
 }
 
-#notificacoes-paciente summary {
+:is(#notificacoes-paciente, #notificacoes-profissional) summary {
   display: grid;
   place-items: center;
 }
 
-#notificacoes-paciente summary::-webkit-details-marker {
+:is(#notificacoes-paciente, #notificacoes-profissional) summary::-webkit-details-marker {
   display: none;
 }
 
@@ -440,4 +440,81 @@ body:has(#tela-acesso-paciente[data-bs-theme="dark"]:not([hidden])) {
 
 .conta-dados dd:last-child {
   margin-bottom: 0;
+}
+
+#tela-profissional {
+  width: 100%;
+  max-width: 60rem;
+}
+
+.profissional-paciente-botao {
+  color: var(--paciente-texto);
+}
+
+.profissional-paciente-botao:hover {
+  background: var(--paciente-destaque);
+}
+
+.profissional-paciente-botao:focus-visible {
+  outline: 3px solid var(--paciente-acento);
+  outline-offset: 3px;
+}
+.protocolo-bloco {
+  background: var(--paciente-destaque);
+  color: var(--paciente-texto);
+  border: 1px solid var(--paciente-borda);
+}
+
+.protocolo-linha-respostas {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  gap: .5rem;
+  max-width: 49.5rem;
+}
+
+.protocolo-opcoes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+}
+
+.protocolo-resposta,
+.protocolo-editar {
+  display: grid;
+  align-items: center;
+  width: 100%;
+  max-width: 12rem;
+  height: 4.5rem;
+  padding: .5rem .75rem;
+  border-radius: .5rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+}
+
+@media (max-width: 575.98px) {
+  .protocolo-linha-respostas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .protocolo-opcoes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .protocolo-resposta,
+  .protocolo-editar {
+    max-width: 100%;
+  }
+}
+
+.relatorio-grafico svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--paciente-acento);
+}
+
+.relatorio-anotacao {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

@@ -73,7 +73,12 @@ formularioLogin.addEventListener('submit', (evento) => {
     return
   }
 
-  statusLogin.textContent = 'A autenticação ainda está em configuração.'
+  if (ultimoPerfil?.dataset.perfil === 'medico') {
+    formularioLogin.reset()
+    voltarDashboardProfissional(false)
+    renderizarDashboardProfissional()
+    trocarTela(telaLogin, telaProfissional, tituloDashboardProfissional)
+  }
 })
 
 botaoEsqueciSenha.addEventListener('click', () => {
@@ -297,6 +302,9 @@ let numeroSessao = 0
 let tempoAcumulado = 0
 let inicioCronometro = null
 let intervaloSessao = null
+let quantidadePausas = 0
+let inicioSessao = null
+let fimSessao = null
 
 function atualizarCronometro() {
   const tempoEmCurso = inicioCronometro === null ? 0 : performance.now() - inicioCronometro
@@ -327,6 +335,9 @@ document.querySelector('#preparar-sessao').addEventListener('click', () => {
   pararCronometro()
   numeroSessao += 1
   tempoAcumulado = 0
+  quantidadePausas = 0
+  inicioSessao = null
+  fimSessao = null
   atualizarCronometro()
   tituloSessao.textContent = 'Sessão ' + String(numeroSessao).padStart(2, '0')
   estadoSessao.textContent = 'Pronta para iniciar. A câmera ainda não está integrada.'
@@ -338,11 +349,13 @@ document.querySelector('#preparar-sessao').addEventListener('click', () => {
 botaoAlternarSessao.addEventListener('click', () => {
   if (inicioCronometro !== null) {
     pararCronometro()
+    quantidadePausas += 1
     botaoAlternarSessao.textContent = 'Retomar monitoramento'
     estadoSessao.textContent = 'Sessão pausada.'
     return
   }
 
+  if (inicioSessao === null) inicioSessao = new Date()
   inicioCronometro = performance.now()
   intervaloSessao = setInterval(atualizarCronometro, 250)
   botaoAlternarSessao.textContent = 'Pausar monitoramento'
@@ -351,8 +364,12 @@ botaoAlternarSessao.addEventListener('click', () => {
 })
 
 botaoFinalizarSessao.addEventListener('click', () => {
+  if (inicioSessao === null || fimSessao !== null) return
+  fimSessao = new Date()
   pararCronometro()
   duracaoSessaoFinalizada.textContent = tempoSessao.textContent
+  document.querySelector('#pausas-sessao-finalizada').textContent = quantidadePausas
+  document.querySelector('#horario-sessao-finalizada').textContent = formatarPeriodoSessao(inicioSessao, fimSessao)
   registrarSessaoFinalizada()
   trocarTela(telaSessao, telaSessaoFinalizada, tituloSessaoFinalizada)
 })
@@ -509,7 +526,10 @@ function chaveDataLocal(data) {
 function registrarSessaoFinalizada() {
   sessoesFinalizadas.unshift({
     numero: tituloSessao.textContent,
-    data: new Date(),
+    data: new Date(inicioSessao),
+    inicio: inicioSessao.toISOString(),
+    fim: fimSessao.toISOString(),
+    pausas: quantidadePausas,
     duracao: tempoSessao.textContent,
     completa: tempoAcumulado >= 2 * 60 * 60 * 1000,
     respostas: [...respostasChecklist],
@@ -524,6 +544,8 @@ function criarItemHistorico(sessao) {
   item.querySelector('[data-sessao-status]').textContent = sessao.completa ? 'Completo' : 'Parcial'
   item.querySelector('[data-sessao-duracao]').textContent = sessao.duracao
   item.querySelector('[data-sessao-numero]').textContent = sessao.numero
+  item.querySelector('[data-sessao-pausas]').textContent = sessao.pausas
+  item.querySelector('[data-sessao-horario]').textContent = formatarPeriodoSessao(new Date(sessao.inicio), new Date(sessao.fim))
 
   const checklist = item.querySelector('[data-sessao-checklist]')
   perguntasChecklist.forEach(([topico], indice) => {
@@ -568,3 +590,525 @@ document.querySelector('#abrir-historico-paciente').addEventListener('click', ()
   mostrarTelaMenuPaciente(telasMenuPaciente['titulo-meu-historico'], document.querySelector('#titulo-meu-historico'))
 })
 renderizarHistorico()
+
+function formatarPeriodoSessao(inicio, fim) {
+  const horario = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  if (chaveDataLocal(inicio) === chaveDataLocal(fim)) {
+    return horario.format(inicio) + ' até ' + horario.format(fim)
+  }
+  const dataHora = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })
+  return dataHora.format(inicio) + ' até ' + dataHora.format(fim)
+}
+
+// Dados fictícios para visualizar o dashboard enquanto o backend é desenvolvido.
+const pacientesProfissional = [
+  {
+    nome: 'Maria',
+    ativo: true,
+    ultimaSessao: 'Última sessão: segunda-feira, 09:30',
+    tempoTotal: '2h30min',
+    sessoesSemana: 1,
+  },
+]
+const telaProfissional = document.querySelector('#tela-profissional')
+const tituloDashboardProfissional = document.querySelector('#titulo-dashboard-profissional')
+const menuProfissional = document.querySelector('#menu-profissional')
+const notificacoesProfissional = document.querySelector('#notificacoes-profissional')
+const temaProfissional = document.querySelector('#tema-profissional')
+
+function renderizarDashboardProfissional() {
+  document.querySelector('#profissional-pacientes-ativos').textContent =
+    pacientesProfissional.filter((paciente) => paciente.ativo).length
+  document.querySelector('#profissional-sessoes-semana').textContent =
+    pacientesProfissional.reduce((total, paciente) => total + paciente.sessoesSemana, 0)
+  document.querySelector('#profissional-solicitacoes').textContent =
+    pacientesProfissional.filter((paciente) => !paciente.ativo).length
+
+  const modelo = document.querySelector('#profissional-item-paciente')
+  const itens = pacientesProfissional.filter((paciente) => paciente.ativo).map((paciente) => {
+    const item = modelo.content.cloneNode(true)
+    item.querySelector('[data-abrir-paciente]').addEventListener('click', () => abrirPerfilPaciente(paciente))
+    item.querySelector('[data-paciente-nome]').textContent = paciente.nome
+    item.querySelector('[data-paciente-ultima-sessao]').textContent = paciente.ultimaSessao
+    item.querySelector('[data-paciente-tempo]').textContent = paciente.tempoTotal
+    return item
+  })
+  document.querySelector('#profissional-lista-pacientes').replaceChildren(...itens)
+}
+
+document.querySelector('#abrir-menu-profissional').addEventListener('click', () => {
+  notificacoesProfissional.open = false
+  menuProfissional.showModal()
+})
+document.querySelector('#fechar-menu-profissional').addEventListener('click', () => menuProfissional.close())
+menuProfissional.addEventListener('click', (evento) => {
+  if (evento.target === menuProfissional) menuProfissional.close()
+})
+document.querySelector('#inicio-profissional').addEventListener('click', () => {
+  menuProfissional.close()
+  voltarDashboardProfissional()
+})
+document.querySelector('#sair-profissional').addEventListener('click', () => {
+  menuProfissional.close()
+  notificacoesProfissional.open = false
+  formularioLogin.reset()
+  ultimoPerfil = null
+  trocarTela(telaProfissional, telaInicio, botaoComecar)
+})
+temaProfissional.addEventListener('click', () => {
+  const escuro = telaProfissional.dataset.bsTheme !== 'dark'
+  telaProfissional.dataset.bsTheme = escuro ? 'dark' : 'light'
+  temaProfissional.setAttribute('aria-pressed', String(escuro))
+})
+document.addEventListener('click', (evento) => {
+  if (!notificacoesProfissional.contains(evento.target)) notificacoesProfissional.open = false
+})
+notificacoesProfissional.addEventListener('keydown', (evento) => {
+  if (evento.key !== 'Escape' || !notificacoesProfissional.open) return
+  notificacoesProfissional.open = false
+  notificacoesProfissional.querySelector('summary').focus()
+})
+
+const dashboardProfissional = document.querySelector('#dashboard-profissional')
+const perfilProfissionalPaciente = document.querySelector('#perfil-profissional-paciente')
+const tituloPerfilProfissionalPaciente = document.querySelector('#titulo-perfil-profissional-paciente')
+const perguntasPerfilPaciente = document.querySelector('#perfil-checklist')
+const botaoTodasPerguntas = document.querySelector('#perfil-todas-perguntas')
+
+function voltarDashboardProfissional(focar = true) {
+  telaSessoesDia.hidden = true
+  telaDetalheSessao.hidden = true
+  telaRelatorioSemanal.hidden = true
+  configuracaoProtocolo.hidden = true
+  perfilProfissionalPaciente.hidden = true
+  dashboardProfissional.hidden = false
+  if (focar) tituloDashboardProfissional.focus()
+}
+
+function abrirPerfilPaciente(paciente) {
+  pacienteSelecionado = paciente
+  telaSessoesDia.hidden = true
+  telaDetalheSessao.hidden = true
+  telaRelatorioSemanal.hidden = true
+  configuracaoProtocolo.hidden = true
+  if (!paciente.protocolo) {
+    paciente.protocolo = perguntasChecklist.map(([categoria, pergunta, respostas]) => ({
+      categoria, pergunta, respostas: [...respostas], ativa: true, personalizada: false,
+    }))
+  }
+  tituloPerfilProfissionalPaciente.textContent = paciente.nome
+  document.querySelector('#perfil-sessoes-semana').textContent = paciente.sessoesSemana
+  document.querySelector('#perfil-tempo-total').textContent = paciente.tempoTotal
+  document.querySelector('#perfil-ultima-sessao').textContent = paciente.ultimaSessao.replace('Última sessão: ', '')
+  const itens = paciente.protocolo.map(({ pergunta }, indice) => {
+    const item = document.createElement('li')
+    item.className = 'protocolo-bloco p-3 rounded-3'
+    item.textContent = pergunta
+    item.hidden = indice >= 3
+    return item
+  })
+  perguntasPerfilPaciente.replaceChildren(...itens)
+  botaoTodasPerguntas.setAttribute('aria-expanded', 'false')
+  botaoTodasPerguntas.textContent = 'Ver todas as 7 perguntas'
+  trocarTela(dashboardProfissional, perfilProfissionalPaciente, tituloPerfilProfissionalPaciente)
+}
+
+botaoTodasPerguntas.addEventListener('click', () => {
+  const expandido = botaoTodasPerguntas.getAttribute('aria-expanded') !== 'true'
+  Array.from(perguntasPerfilPaciente.children).forEach((item, indice) => {
+    item.hidden = !expandido && indice >= 3
+  })
+  botaoTodasPerguntas.setAttribute('aria-expanded', String(expandido))
+  botaoTodasPerguntas.textContent = expandido ? 'Mostrar apenas 3 perguntas' : 'Ver todas as 7 perguntas'
+})
+
+document.querySelector('#voltar-dashboard-profissional').addEventListener('click', () => voltarDashboardProfissional())
+
+const configuracaoProtocolo = document.querySelector('#configuracao-protocolo')
+const tituloConfiguracaoProtocolo = document.querySelector('#titulo-configuracao-protocolo')
+const listaProtocolo = document.querySelector('#lista-protocolo')
+const modeloPerguntaProtocolo = document.querySelector('#modelo-pergunta-protocolo')
+const statusProtocolo = document.querySelector('#status-protocolo')
+let pacienteSelecionado = null
+
+function criarCartaoProtocolo(questao) {
+  const fragmento = modeloPerguntaProtocolo.content.cloneNode(true)
+  const cartao = fragmento.querySelector('article')
+  const leitura = cartao.querySelector('[data-leitura]')
+  const formulario = cartao.querySelector('form')
+  const editar = cartao.querySelector('[data-editar]')
+  const ativa = cartao.querySelector('[data-ativa]')
+  const origem = cartao.querySelector('[data-origem]')
+  cartao.querySelector('[data-categoria]').textContent = questao.categoria
+  ativa.checked = questao.ativa
+
+  function atualizarCartao() {
+    origem.textContent = questao.personalizada ? 'Personalizada' : 'Base'
+    cartao.querySelector('[data-status-ativa]').textContent = questao.ativa ? 'Ativa' : 'Inativa'
+    cartao.querySelector('[data-pergunta]').textContent = questao.pergunta
+    const respostas = questao.respostas.map((texto) => {
+      const bloco = document.createElement('span')
+      bloco.className = 'protocolo-bloco protocolo-resposta'
+      bloco.textContent = texto
+      return bloco
+    })
+    cartao.querySelector('[data-respostas]').replaceChildren(...respostas)
+  }
+
+  ativa.addEventListener('change', () => {
+    questao.ativa = ativa.checked
+    atualizarCartao()
+    statusProtocolo.textContent = 'Ativação atualizada nesta demonstração.'
+  })
+
+  editar.addEventListener('click', () => {
+    formulario.elements.pergunta.value = questao.pergunta
+    questao.respostas.forEach((resposta, indice) => {
+      const campo = formulario.elements.namedItem('resposta' + (indice + 1))
+      campo.value = resposta
+      campo.setCustomValidity('')
+    })
+    formulario.elements.pergunta.setCustomValidity('')
+    trocarTela(leitura, formulario, formulario.elements.pergunta)
+  })
+
+  cartao.querySelector('[data-cancelar]').addEventListener('click', () => trocarTela(formulario, leitura, editar))
+
+  formulario.addEventListener('input', (evento) => evento.target.setCustomValidity(''))
+  formulario.addEventListener('submit', (evento) => {
+    evento.preventDefault()
+    const campos = Array.from(formulario.elements).filter((campo) => campo.required)
+    for (const campo of campos) {
+      campo.setCustomValidity(campo.value.trim() ? '' : 'Preencha este campo.')
+    }
+    if (!formulario.reportValidity()) return
+    questao.pergunta = formulario.elements.pergunta.value.trim()
+    questao.respostas = [1, 2, 3].map((indice) => formulario.elements.namedItem('resposta' + indice).value.trim())
+    const base = perguntasChecklist.find(([categoria]) => categoria === questao.categoria)
+    questao.personalizada = questao.pergunta !== base[1] ||
+      questao.respostas.some((resposta, indice) => resposta !== base[2][indice])
+    atualizarCartao()
+    trocarTela(formulario, leitura, editar)
+    statusProtocolo.textContent = 'Pergunta atualizada nesta demonstração.'
+  })
+  atualizarCartao()
+  return fragmento
+}
+
+document.querySelector('#editar-protocolo').addEventListener('click', () => {
+  document.querySelector('#subtitulo-configuracao-protocolo').textContent =
+    'Personalize as perguntas do checklist para ' + pacienteSelecionado.nome
+  statusProtocolo.textContent = ''
+  listaProtocolo.replaceChildren(...pacienteSelecionado.protocolo.map(criarCartaoProtocolo))
+  trocarTela(perfilProfissionalPaciente, configuracaoProtocolo, tituloConfiguracaoProtocolo)
+})
+
+document.querySelector('#voltar-perfil-protocolo').addEventListener('click', () => abrirPerfilPaciente(pacienteSelecionado))
+
+// Recupera o protocolo original apenas para o paciente selecionado.
+document.querySelector('#restaurar-protocolo').addEventListener('click', () => {
+  pacienteSelecionado.protocolo = perguntasChecklist.map(([categoria, pergunta, respostas]) => ({
+    categoria,
+    pergunta,
+    respostas: [...respostas],
+    ativa: true,
+    personalizada: false,
+  }))
+  listaProtocolo.replaceChildren(...pacienteSelecionado.protocolo.map(criarCartaoProtocolo))
+  statusProtocolo.textContent = 'As sete perguntas foram restauradas ao padrão e reativadas.'
+})
+
+// Relatórios e anotações da demonstração ficam vinculados ao paciente em memória.
+const telaRelatorioSemanal = document.querySelector('#relatorio-semanal')
+const seletorSemanaRelatorio = document.querySelector('#relatorio-semana')
+const campoAnotacaoSemanal = document.querySelector('#anotacao-semanal')
+const statusAnotacaoSemanal = document.querySelector('#status-anotacao-semanal')
+const listaAnotacoesSemanais = document.querySelector('#lista-anotacoes-semanais')
+const botaoVerAnotacoes = document.querySelector('#ver-anotacoes-semanais')
+const dataCurtaRelatorio = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+
+function montarSemanasRelatorio() {
+  if (!pacienteSelecionado.semanasRelatorio) {
+    const segunda = new Date()
+    segunda.setHours(0, 0, 0, 0)
+    segunda.setDate(segunda.getDate() - (segunda.getDay() + 6) % 7)
+    pacienteSelecionado.semanasRelatorio = [{
+      inicio: segunda,
+      sessoes: [{
+        numero: 1,
+        dia: 0,
+        inicio: '09:30',
+        fim: '12:00',
+        minutos: 150,
+        pausas: 0,
+        checkins: 0,
+        qualidade: 'Indisponível',
+        respostas: ['Regular', 'Moderado', 'Moderado', 'Neutro', 'Não', 'Sim', 'Sim, conforme prescrito'],
+      }],
+
+      checkins: 0,
+      anotacoes: [],
+      rascunho: '',
+    }]
+  }
+  const opcoes = pacienteSelecionado.semanasRelatorio.map((semana, indice) => {
+    const opcao = document.createElement('option')
+    opcao.value = indice
+    opcao.textContent = periodoRelatorio(semana)
+    return opcao
+  })
+  seletorSemanaRelatorio.replaceChildren(...opcoes)
+}
+
+function semanaRelatorioAtual() {
+  return pacienteSelecionado.semanasRelatorio[Number(seletorSemanaRelatorio.value)]
+}
+
+function periodoRelatorio(semana) {
+  const fim = new Date(semana.inicio)
+  fim.setDate(fim.getDate() + 6)
+  return 'Semana de ' + dataCurtaRelatorio.format(semana.inicio) + ' a ' + dataCurtaRelatorio.format(fim)
+}
+
+function desenharGraficoSemanal(minutos) {
+  const svg = document.querySelector('#relatorio-grafico')
+  svg.replaceChildren()
+  const ns = 'http://www.w3.org/2000/svg'
+  function adicionar(tag, atributos, texto) {
+    const elemento = document.createElementNS(ns, tag)
+    for (const [nome, valor] of Object.entries(atributos)) elemento.setAttribute(nome, valor)
+    if (texto !== undefined) elemento.textContent = texto
+    svg.append(elemento)
+    return elemento
+  }
+  const teto = Math.max(60, Math.ceil(Math.max(...minutos) / 60) * 60)
+  const dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+  for (let indice = 0; indice <= 4; indice += 1) {
+    const y = 225 - indice * 45
+    adicionar('line', { x1: 55, y1: y, x2: 615, y2: y, stroke: 'currentColor', opacity: '.18' })
+    adicionar('text', { x: 44, y: y + 4, 'text-anchor': 'end', fill: 'currentColor', 'font-size': 12 }, Math.round(teto * indice / 4))
+  }
+  const pontos = minutos.map((valor, indice) => [55 + indice * 560 / 6, 225 - valor / teto * 180])
+  adicionar('polyline', { points: pontos.map((ponto) => ponto.join(',')).join(' '), fill: 'none', stroke: 'currentColor', 'stroke-width': 3 })
+  pontos.forEach(([x, y], indice) => {
+    const ponto = adicionar('circle', { cx: x, cy: y, r: 4, fill: 'currentColor' })
+    const titulo = document.createElementNS(ns, 'title')
+    titulo.textContent = dias[indice] + ': ' + minutos[indice] + ' minutos'
+    ponto.append(titulo)
+    ponto.setAttribute('r', '7')
+    ponto.setAttribute('tabindex', '0')
+    ponto.setAttribute('role', 'button')
+    ponto.setAttribute('aria-label', 'Abrir sessões de ' + dias[indice])
+    ponto.style.cursor = 'pointer'
+    ponto.addEventListener('click', () => abrirSessoesDia(indice))
+    ponto.addEventListener('keydown', (evento) => {
+      if (evento.key !== 'Enter' && evento.key !== ' ') return
+      evento.preventDefault()
+      abrirSessoesDia(indice)
+    })
+    adicionar('text', { x, y: 252, 'text-anchor': 'middle', fill: 'currentColor', 'font-size': 12 }, dias[indice])
+  })
+  renderizarBotoesDias(dias)
+  adicionar('text', { x: 55, y: 25, fill: 'currentColor', 'font-size': 12 }, 'Minutos')
+  document.querySelector('#relatorio-dados-grafico').textContent =
+    dias.map((dia, indice) => dia + ': ' + minutos[indice] + ' min').join(' · ')
+}
+
+function renderizarAnotacoesSemanais() {
+  const anotacoes = semanaRelatorioAtual().anotacoes
+  const itens = anotacoes.map((anotacao) => {
+    const bloco = document.createElement('p')
+    bloco.className = 'protocolo-bloco rounded-3 p-3 mb-0 relatorio-anotacao'
+    bloco.textContent = anotacao
+    return bloco
+  })
+  if (!itens.length) {
+    const vazio = document.createElement('p')
+    vazio.textContent = 'Nenhuma anotação nesta semana.'
+    itens.push(vazio)
+  }
+  listaAnotacoesSemanais.replaceChildren(...itens)
+}
+
+function renderizarRelatorioSemanal() {
+  const semana = semanaRelatorioAtual()
+  const minutos = Array(7).fill(0)
+  for (const sessao of semana.sessoes) minutos[sessao.dia] += sessao.minutos
+  const totalMinutos = minutos.reduce((total, valor) => total + valor, 0)
+  document.querySelector('#relatorio-periodo').textContent = periodoRelatorio(semana)
+  document.querySelector('#relatorio-total').textContent = semana.sessoes.length
+  document.querySelector('#relatorio-tempo').textContent = Math.floor(totalMinutos / 60) + 'h' + String(totalMinutos % 60).padStart(2, '0') + 'min'
+  document.querySelector('#relatorio-checkins').textContent = semana.sessoes.reduce((total, sessao) => total + sessao.checkins, 0)
+  campoAnotacaoSemanal.value = semana.rascunho
+  campoAnotacaoSemanal.setCustomValidity('')
+  statusAnotacaoSemanal.textContent = ''
+  listaAnotacoesSemanais.hidden = true
+  botaoVerAnotacoes.setAttribute('aria-expanded', 'false')
+  desenharGraficoSemanal(minutos)
+  renderizarAnotacoesSemanais()
+}
+
+document.querySelector('#abrir-relatorio-semanal').addEventListener('click', () => {
+  montarSemanasRelatorio()
+  renderizarRelatorioSemanal()
+  trocarTela(perfilProfissionalPaciente, telaRelatorioSemanal, document.querySelector('#titulo-relatorio-semanal'))
+})
+document.querySelector('#relatorio-voltar').addEventListener('click', () => abrirPerfilPaciente(pacienteSelecionado))
+seletorSemanaRelatorio.addEventListener('change', renderizarRelatorioSemanal)
+campoAnotacaoSemanal.addEventListener('input', () => {
+  campoAnotacaoSemanal.setCustomValidity('')
+  semanaRelatorioAtual().rascunho = campoAnotacaoSemanal.value
+})
+document.querySelector('#form-anotacao-semanal').addEventListener('submit', (evento) => {
+  evento.preventDefault()
+  const texto = campoAnotacaoSemanal.value.trim()
+  campoAnotacaoSemanal.setCustomValidity(texto ? '' : 'Escreva sua observação.')
+  if (!campoAnotacaoSemanal.reportValidity()) return
+  const semana = semanaRelatorioAtual()
+  semana.anotacoes.unshift(texto)
+  semana.rascunho = ''
+  campoAnotacaoSemanal.value = ''
+  statusAnotacaoSemanal.textContent = 'Anotação salva nesta demonstração.'
+  renderizarAnotacoesSemanais()
+})
+botaoVerAnotacoes.addEventListener('click', () => {
+  const abrir = listaAnotacoesSemanais.hidden
+  listaAnotacoesSemanais.hidden = !abrir
+  botaoVerAnotacoes.setAttribute('aria-expanded', String(abrir))
+})
+
+const telaSessoesDia = document.querySelector('#profissional-sessoes-dia')
+const telaDetalheSessao = document.querySelector('#profissional-detalhe-sessao')
+const tituloSessoesDia = document.querySelector('#titulo-profissional-sessoes-dia')
+const tituloDetalheSessao = document.querySelector('#titulo-profissional-detalhe-sessao')
+const formatoDataSessaoProfissional = new Intl.DateTimeFormat('pt-BR', {
+  weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric',
+})
+
+function dataDiaRelatorio(indice) {
+  const data = new Date(semanaRelatorioAtual().inicio)
+  data.setDate(data.getDate() + indice)
+  return formatoDataSessaoProfissional.format(data)
+}
+
+function renderizarBotoesDias(dias) {
+  const botoes = dias.map((dia, indice) => {
+    const botao = document.createElement('button')
+    botao.type = 'button'
+    botao.className = 'btn paciente-controle rounded-pill'
+    botao.textContent = dia
+    botao.setAttribute('aria-label', 'Abrir sessões de ' + dataDiaRelatorio(indice))
+    botao.addEventListener('click', () => abrirSessoesDia(indice))
+    return botao
+  })
+  document.querySelector('#relatorio-dias').replaceChildren(...botoes)
+}
+
+function abrirSessoesDia(indice) {
+  const sessoes = semanaRelatorioAtual().sessoes.filter((sessao) => sessao.dia === indice)
+  document.querySelector('#data-profissional-sessoes-dia').textContent = dataDiaRelatorio(indice)
+  document.querySelector('#vazio-profissional-sessoes-dia').hidden = sessoes.length > 0
+  const itens = sessoes.map((sessao) => {
+    const botao = document.createElement('button')
+    botao.type = 'button'
+    botao.className = 'paciente-card profissional-paciente-botao w-100 text-start'
+    const data = document.createElement('span')
+    data.className = 'h5 d-inline-block me-2'
+    data.textContent = dataDiaRelatorio(indice)
+    const status = document.createElement('span')
+    status.className = 'paciente-status rounded-pill px-3 py-1'
+    status.textContent = sessao.minutos >= 120 ? 'Completa' : 'Parcial'
+    const duracao = document.createElement('span')
+    duracao.className = 'd-block mt-2'
+    duracao.textContent = 'Duração: ' + Math.floor(sessao.minutos / 60) + 'h' + String(sessao.minutos % 60).padStart(2, '0') + 'min'
+    botao.append(data, status, duracao)
+    botao.addEventListener('click', () => abrirDetalheSessaoProfissional(sessao, botao))
+    return botao
+  })
+  document.querySelector('#lista-profissional-sessoes-dia').replaceChildren(...itens)
+  trocarTela(telaRelatorioSemanal, telaSessoesDia, tituloSessoesDia)
+}
+
+let botaoSessaoSelecionada = null
+
+function abrirDetalheSessaoProfissional(sessao, botao) {
+  botaoSessaoSelecionada = botao
+  sessaoComentada = sessao
+  campoComentarioSessao.value = sessao.rascunhoComentario ?? ''
+  campoComentarioSessao.setCustomValidity('')
+  statusComentarioSessao.textContent = ''
+  renderizarComentariosSessao()
+  tituloDetalheSessao.textContent = 'Sessão ' + sessao.numero
+  document.querySelector('#profissional-sessao-horario').textContent = sessao.inicio + ' até ' + sessao.fim
+  document.querySelector('#profissional-sessao-pausas').textContent = sessao.pausas
+  document.querySelector('#profissional-sessao-checkins').textContent = sessao.checkins
+  document.querySelector('#profissional-sessao-qualidade').textContent = sessao.qualidade
+
+  const respostas = document.querySelector('#profissional-sessao-respostas')
+  respostas.replaceChildren()
+  perguntasChecklist.forEach(([categoria], indice) => {
+    const rotulo = document.createElement('dt')
+    rotulo.textContent = categoria
+    const valor = document.createElement('dd')
+    valor.textContent = sessao.respostas[indice] ?? 'Não respondida'
+    respostas.append(rotulo, valor)
+  })
+  trocarTela(telaSessoesDia, telaDetalheSessao, tituloDetalheSessao)
+}
+
+document.querySelector('#voltar-relatorio-dia').addEventListener('click', () => {
+  trocarTela(telaSessoesDia, telaRelatorioSemanal, document.querySelector('#relatorio-semana'))
+})
+document.querySelector('#voltar-sessoes-dia').addEventListener('click', () => {
+  trocarTela(telaDetalheSessao, telaSessoesDia, botaoSessaoSelecionada ?? tituloSessoesDia)
+})
+
+
+// Comentários e rascunho pertencem à sessão, separados das anotações semanais.
+let sessaoComentada = null
+const campoComentarioSessao = document.querySelector('#comentario-sessao')
+const statusComentarioSessao = document.querySelector('#status-comentario-sessao')
+const listaComentariosSessao = document.querySelector('#lista-comentarios-sessao')
+const formatoComentarioSessao = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+
+function renderizarComentariosSessao() {
+  const comentarios = sessaoComentada.comentarios ?? []
+  const itens = comentarios.map((comentario) => {
+    const bloco = document.createElement('div')
+    bloco.className = 'protocolo-bloco rounded-3 p-3'
+    const data = document.createElement('time')
+    data.className = 'small d-block mb-2'
+    data.dateTime = comentario.data
+    data.textContent = formatoComentarioSessao.format(new Date(comentario.data))
+    const texto = document.createElement('p')
+    texto.className = 'relatorio-anotacao mb-0'
+    texto.textContent = comentario.texto
+    bloco.append(data, texto)
+    return bloco
+  })
+  if (!itens.length) {
+    const vazio = document.createElement('p')
+    vazio.className = 'small mb-0'
+    vazio.textContent = 'Nenhum comentário nesta sessão.'
+    itens.push(vazio)
+  }
+  listaComentariosSessao.replaceChildren(...itens)
+}
+
+campoComentarioSessao.addEventListener('input', () => {
+  campoComentarioSessao.setCustomValidity('')
+  sessaoComentada.rascunhoComentario = campoComentarioSessao.value
+})
+
+document.querySelector('#form-comentario-sessao').addEventListener('submit', (evento) => {
+  evento.preventDefault()
+  const texto = campoComentarioSessao.value.trim()
+  campoComentarioSessao.setCustomValidity(texto ? '' : 'Escreva seu comentário.')
+  if (!campoComentarioSessao.reportValidity()) return
+  sessaoComentada.comentarios ??= []
+  sessaoComentada.comentarios.unshift({ texto, data: new Date().toISOString() })
+  sessaoComentada.rascunhoComentario = ''
+  campoComentarioSessao.value = ''
+  renderizarComentariosSessao()
+  statusComentarioSessao.textContent = 'Comentário salvo nesta demonstração.'
+})

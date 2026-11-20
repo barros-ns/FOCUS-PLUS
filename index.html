@@ -423,6 +423,8 @@
               </summary>
               <div class="border-top mt-3 pt-3">
                 <h2 class="h6" data-sessao-numero></h2>
+                <p class="mb-1">Horário: <strong data-sessao-horario></strong></p>
+                <p class="mb-1">Pausas: <strong data-sessao-pausas></strong></p>
                 <p class="mb-1">Check-ins: <strong>0 registrados</strong></p>
                 <p>Qualidade da câmera no geral: <strong>Indisponível</strong></p>
                 <h3 class="h6">Respostas do checklist</h3>
@@ -596,6 +598,14 @@
               <dd id="duracao-sessao-finalizada" class="fw-bold mb-0"></dd>
             </div>
             <div class="d-flex flex-wrap justify-content-between gap-2">
+              <dt class="fw-normal">Horário</dt>
+              <dd id="horario-sessao-finalizada" class="fw-bold mb-0"></dd>
+            </div>
+            <div class="d-flex flex-wrap justify-content-between gap-2">
+              <dt class="fw-normal">Pausas</dt>
+              <dd id="pausas-sessao-finalizada" class="fw-bold mb-0"></dd>
+            </div>
+            <div class="d-flex flex-wrap justify-content-between gap-2">
               <dt class="fw-normal">Check-ins</dt>
               <dd class="fw-bold mb-0">0 registrados</dd>
             </div>
@@ -606,6 +616,280 @@
           </dl>
 
           <button id="encerrar-visualizacao-sessao" class="btn login-entrar rounded-pill w-100" type="button">Voltar ao início</button>
+        </section>
+
+      </section>
+
+      <!-- Profissional: indicadores e pacientes vinculados da demonstração -->
+      <section id="tela-profissional" class="perfil mx-auto" aria-labelledby="titulo-dashboard-profissional" hidden>
+        <header class="paciente-barra mb-4">
+          <button id="abrir-menu-profissional" class="btn paciente-controle" type="button" aria-label="Abrir menu" aria-haspopup="dialog" aria-controls="menu-profissional">☰</button>
+          <span class="paciente-marca">FOCUS+</span>
+          <div class="paciente-acoes">
+            <button id="tema-profissional" class="btn paciente-controle" type="button" aria-label="Modo escuro" aria-pressed="false">
+              <span aria-hidden="true">◐</span>
+            </button>
+            <details id="notificacoes-profissional">
+              <summary class="btn paciente-controle" aria-label="Notificações">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>
+                </svg>
+              </summary>
+              <div class="paciente-notificacoes">
+                <h2 class="h6">Notificações</h2>
+                <p class="small mb-0">Nenhuma notificação por enquanto.</p>
+              </div>
+            </details>
+          </div>
+        </header>
+
+        <!-- Painel lateral com navegação e botão Sair -->
+        <dialog id="menu-profissional" class="paciente-menu" aria-labelledby="titulo-menu-profissional">
+          <div class="paciente-menu-conteudo">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <h2 id="titulo-menu-profissional" class="paciente-marca mb-0">FOCUS+</h2>
+              <button id="fechar-menu-profissional" class="btn paciente-controle" type="button" aria-label="Fechar menu" autofocus>×</button>
+            </div>
+            <nav class="paciente-menu-opcoes" aria-label="Navegação do profissional">
+              <button id="inicio-profissional" class="dropdown-item" type="button">Início</button>
+            </nav>
+            <button id="sair-profissional" class="btn paciente-controle paciente-sair" type="button">Sair</button>
+          </div>
+        </dialog>
+        <div id="dashboard-profissional">
+        <h1 id="titulo-dashboard-profissional" class="h2 mb-4" tabindex="-1">Dashboard</h1>
+
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-4">
+            <article class="paciente-card h-100">
+              <h2 class="h6">Pacientes ativos</h2>
+              <p id="profissional-pacientes-ativos" class="display-6 mb-0"></p>
+            </article>
+          </div>
+          <div class="col-12 col-md-4">
+            <article class="paciente-card h-100">
+              <h2 class="h6">Sessões dos pacientes essa semana</h2>
+              <p id="profissional-sessoes-semana" class="display-6 mb-0"></p>
+            </article>
+          </div>
+          <div class="col-12 col-md-4">
+            <article class="paciente-card h-100">
+              <h2 class="h6">Solicitações pendentes</h2>
+              <p id="profissional-solicitacoes" class="display-6 mb-0"></p>
+            </article>
+          </div>
+        </div>
+
+        <h2 class="h4 mb-3">Meus pacientes</h2>
+        <div id="profissional-lista-pacientes" class="d-grid gap-3"></div>
+        <template id="profissional-item-paciente">
+          <button class="paciente-card profissional-paciente-botao w-100 d-flex flex-wrap justify-content-between align-items-center gap-3 text-start" type="button" data-abrir-paciente>
+            <span>
+              <span class="h5 d-block" data-paciente-nome></span>
+              <span class="d-block" data-paciente-ultima-sessao></span>
+            </span>
+            <span class="text-sm-end">
+              <span class="h4 d-block mb-1" data-paciente-tempo></span>
+              <span class="small">Tempo registrado</span>
+            </span>
+          </button>
+        </template>
+        </div>
+
+        <!-- Profissional: perfil do paciente selecionado -->
+        <section id="perfil-profissional-paciente" aria-labelledby="titulo-perfil-profissional-paciente" hidden>
+          <button id="voltar-dashboard-profissional" class="btn paciente-controle mb-3" type="button">← Meus pacientes</button>
+          <h1 id="titulo-perfil-profissional-paciente" class="h2" tabindex="-1"></h1>
+          <p class="mb-4">Perfil do Paciente</p>
+
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-4">
+              <article class="paciente-card h-100">
+                <h2 class="h6">Sessões essa semana</h2>
+                <p id="perfil-sessoes-semana" class="h3 mb-0"></p>
+              </article>
+            </div>
+            <div class="col-12 col-md-4">
+              <article class="paciente-card h-100">
+                <h2 class="h6">Tempo total</h2>
+                <p id="perfil-tempo-total" class="h3 mb-0"></p>
+              </article>
+            </div>
+            <div class="col-12 col-md-4">
+              <article class="paciente-card h-100">
+                <h2 class="h6">Última sessão</h2>
+                <p id="perfil-ultima-sessao" class="h5 mb-0"></p>
+              </article>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <article class="paciente-card h-100">
+                <header class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                  <h2 class="h5 mb-0">Protocolo de checklist</h2>
+                  <button id="editar-protocolo" class="btn paciente-controle rounded-pill" type="button">Editar</button>
+                </header>
+                <ol id="perfil-checklist" class="list-unstyled d-grid gap-2"></ol>
+                <button id="perfil-todas-perguntas" class="btn paciente-controle rounded-pill" type="button" aria-expanded="false" aria-controls="perfil-checklist">Ver todas as 7 perguntas</button>
+              </article>
+            </div>
+            <div class="col-12 col-md-6">
+              <article class="paciente-card h-100">
+                <h2 class="h5 mb-3">Relatórios</h2>
+                <div class="d-grid gap-2">
+                  <button id="abrir-relatorio-semanal" class="btn paciente-controle text-start p-3" type="button"><span class="d-block fw-bold">Relatório Semanal</span>
+                    <span class="small">Última semana</span>
+                  </button>
+                  <button class="btn paciente-controle text-start p-3" type="button" disabled>
+                    <span class="d-block fw-bold">Evolução</span>
+                    <span class="small">Histórico completo</span>
+                  </button>
+                  <button class="btn paciente-controle text-start p-3" type="button" disabled>
+                    <span class="d-block fw-bold">Anotações</span>
+                    <span class="small">Suas observações</span>
+                  </button>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+        <!-- Profissional: configuração individual do protocolo -->
+        <section id="configuracao-protocolo" aria-labelledby="titulo-configuracao-protocolo" hidden>
+          <button id="voltar-perfil-protocolo" class="btn paciente-controle mb-3" type="button">← Perfil do paciente</button>
+          <h1 id="titulo-configuracao-protocolo" class="h2" tabindex="-1">Configuração do Protocolo</h1>
+          <p id="subtitulo-configuracao-protocolo" class="mb-4"></p>
+          <button id="restaurar-protocolo" class="btn paciente-controle rounded-3 mb-3" type="button">Restaurar padrão</button>
+          <div id="lista-protocolo" class="d-grid gap-3"></div>
+          <p id="status-protocolo" class="mt-3" role="status"></p>
+
+          <template id="modelo-pergunta-protocolo">
+            <article class="paciente-card">
+              <header class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                  <h2 class="h6 mb-0 protocolo-bloco rounded-3 px-3 py-2" data-categoria></h2>
+                  <span class="protocolo-bloco rounded-3 px-3 py-2 small" data-origem></span>
+                </div>
+                <label class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox" data-ativa>
+                  <span class="form-check-label" data-status-ativa></span>
+                </label>
+              </header>
+              <div data-leitura>
+                <p class="fw-semibold" data-pergunta></p>
+                <div class="protocolo-linha-respostas">
+                  <div class="protocolo-opcoes" data-respostas></div>
+                  <button class="btn paciente-controle protocolo-editar" type="button" data-editar>Editar pergunta</button>
+                </div>
+              </div>
+              <form data-formulario hidden>
+                <label class="form-label d-block">Pergunta
+                  <textarea name="pergunta" class="form-control mt-1" rows="2" required></textarea>
+                </label>
+                <div class="row g-2 mb-3">
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label d-block">Resposta 1<input name="resposta1" class="form-control mt-1" required></label>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label d-block">Resposta 2<input name="resposta2" class="form-control mt-1" required></label>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label d-block">Resposta 3<input name="resposta3" class="form-control mt-1" required></label>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                  <button class="btn paciente-controle rounded-pill" type="button" data-cancelar>Cancelar</button>
+                  <button class="btn login-entrar rounded-pill px-4" type="submit">Salvar</button>
+                </div>
+              </form>
+            </article>
+          </template>
+        </section>
+
+        <!-- Profissional: relatório semanal do paciente selecionado -->
+        <section id="relatorio-semanal" aria-labelledby="titulo-relatorio-semanal" hidden>
+          <button id="relatorio-voltar" class="btn paciente-controle mb-3" type="button">← Perfil do paciente</button>
+          <h1 id="titulo-relatorio-semanal" class="h2" tabindex="-1">Relatório Semanal</h1>
+          <p id="relatorio-periodo" class="mb-4"></p>
+
+          <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3"><article class="paciente-card h-100">
+              <h2 class="h6">Total de sessões</h2><p id="relatorio-total" class="h3 mb-0"></p>
+            </article></div>
+            <div class="col-6 col-lg-3"><article class="paciente-card h-100">
+              <h2 class="h6">Tempo total</h2><p id="relatorio-tempo" class="h3 mb-0"></p>
+            </article></div>
+            <div class="col-6 col-lg-3"><article class="paciente-card h-100">
+              <h2 class="h6">Atenção média</h2><p class="h3 mb-0">— /10</p>
+              <p class="small mb-0 mt-2">Sem avaliações nesta escala.</p>
+            </article></div>
+            <div class="col-6 col-lg-3"><article class="paciente-card h-100">
+              <h2 class="h6">Check-ins registrados</h2><p id="relatorio-checkins" class="h3 mb-0"></p>
+            </article></div>
+          </div>
+
+          <article class="paciente-card mb-3">
+            <header class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+              <h2 class="h5 mb-0">Tempo da sessão por dia (minutos)</h2>
+              <div>
+                <label class="visually-hidden" for="relatorio-semana">Semana do relatório</label>
+                <select id="relatorio-semana" class="form-select"></select>
+              </div>
+            </header>
+            <div class="relatorio-grafico">
+              <svg id="relatorio-grafico" viewBox="0 0 640 280" role="img" aria-label="Tempo registrado por dia da semana em minutos"></svg>
+            </div>
+            <div id="relatorio-dias" class="d-flex flex-wrap gap-2 mt-3" role="group" aria-label="Abrir sessões por dia"></div>
+            <p id="relatorio-dados-grafico" class="small mb-0 mt-2"></p>
+          </article>
+
+          <article class="paciente-card">
+            <h2 class="h5">Anotações do Profissional</h2>
+            <form id="form-anotacao-semanal">
+              <label for="anotacao-semanal" class="visually-hidden">Observações sobre esta semana</label>
+              <textarea id="anotacao-semanal" class="form-control mb-3" rows="4" placeholder="Adicione suas observações sobre esta semana..." required></textarea>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn login-entrar rounded-pill" type="submit">Salvar anotação</button>
+                <button id="ver-anotacoes-semanais" class="btn paciente-controle rounded-pill" type="button" aria-expanded="false" aria-controls="lista-anotacoes-semanais">Ver todas as anotações</button>
+              </div>
+            </form>
+            <p id="status-anotacao-semanal" class="small mt-3 mb-0" role="status"></p>
+            <div id="lista-anotacoes-semanais" class="d-grid gap-2 mt-3" hidden></div>
+          </article>
+        </section>
+
+        <!-- Relatório: sessões do dia selecionado -->
+        <section id="profissional-sessoes-dia" aria-labelledby="titulo-profissional-sessoes-dia" hidden>
+          <button id="voltar-relatorio-dia" class="btn paciente-controle mb-3" type="button">← Relatório semanal</button>
+          <h1 id="titulo-profissional-sessoes-dia" class="h2" tabindex="-1">Sessões do dia</h1>
+          <p id="data-profissional-sessoes-dia"></p>
+          <p id="vazio-profissional-sessoes-dia" hidden>Nenhuma sessão registrada neste dia.</p>
+          <div id="lista-profissional-sessoes-dia" class="d-grid gap-3"></div>
+        </section>
+
+        <!-- Relatório: detalhes de uma sessão do paciente -->
+        <section id="profissional-detalhe-sessao" aria-labelledby="titulo-profissional-detalhe-sessao" hidden>
+          <button id="voltar-sessoes-dia" class="btn paciente-controle mb-3" type="button">← Sessões do dia</button>
+          <article class="paciente-card">
+            <h1 id="titulo-profissional-detalhe-sessao" class="h2" tabindex="-1"></h1>
+            <p>Horário: <strong id="profissional-sessao-horario"></strong></p>
+            <p>Pausas: <strong id="profissional-sessao-pausas"></strong></p>
+            <p>Check-ins: <strong id="profissional-sessao-checkins"></strong> registrados</p>
+            <p>Qualidade da câmera no geral: <strong id="profissional-sessao-qualidade"></strong></p>
+            <h2 class="h5 mt-4">Respostas do checklist</h2>
+            <dl id="profissional-sessao-respostas" class="conta-dados mb-0"></dl>
+          </article>
+          <!-- Comentários do profissional vinculados à sessão selecionada -->
+          <article class="paciente-card mt-3">
+            <h2 class="h5">Comentários da sessão</h2>
+            <form id="form-comentario-sessao">
+              <label for="comentario-sessao" class="form-label">Adicione suas observações sobre esta sessão</label>
+              <textarea id="comentario-sessao" class="form-control mb-3" rows="3" required></textarea>
+              <button class="btn login-entrar rounded-pill" type="submit">Salvar comentário</button>
+            </form>
+            <p id="status-comentario-sessao" class="small mt-3" role="status"></p>
+            <div id="lista-comentarios-sessao" class="d-grid gap-2"></div>
+          </article>
         </section>
 
       </section>
