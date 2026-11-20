@@ -429,6 +429,22 @@
             <button class="btn paciente-controle rounded-pill" type="button" data-abrir-nova-senha aria-describedby="ajuda-alterar-senha">Alterar senha</button>
             <p id="ajuda-alterar-senha" class="small mt-2 mb-0">A alteração será disponibilizada com a autenticação.</p>
           </article>
+          <article id="privacidade-conta" class="paciente-card mt-3" aria-labelledby="titulo-privacidade-conta">
+            <h2 id="titulo-privacidade-conta" class="h5">Privacidade e consentimento</h2>
+            <p id="estado-consentimento-conta" role="status">Consentimento da câmera pendente.</p>
+            <div class="d-flex flex-wrap gap-2 mb-4">
+              <button id="revogar-consentimento" class="btn btn-outline-danger rounded-pill" type="button" disabled>Revogar consentimento</button>
+              <button id="autorizar-consentimento" class="btn paciente-controle rounded-pill" type="button">Autorizar câmera novamente</button>
+            </div>
+            <h3 class="h6">Seus dados</h3>
+            <p>Solicite uma cópia das suas informações ou a exclusão dos seus dados.</p>
+            <div class="d-flex flex-wrap gap-2">
+              <button id="solicitar-exportacao" class="btn paciente-controle rounded-pill" type="button">Solicitar exportação</button>
+              <button id="solicitar-exclusao" class="btn btn-outline-danger rounded-pill" type="button">Solicitar exclusão</button>
+            </div>
+            <p id="status-privacidade-conta" class="small mt-3 mb-0" role="status"></p>
+            <ul id="solicitacoes-privacidade" class="small mt-3 mb-0"></ul>
+          </article>
         </section>
 
 
@@ -1158,6 +1174,16 @@
         <button id="concluir-adicionar-paciente" class="btn login-entrar rounded-pill w-100" type="button">Concluir</button>
       </section>
       <p id="status-adicionar-paciente" class="small mt-3 mb-0" role="status"></p>
+    </dialog>
+
+    <!-- Confirmação das ações de privacidade do paciente -->
+    <dialog id="dialog-privacidade" class="nova-senha-dialog" aria-labelledby="titulo-dialog-privacidade">
+      <h1 id="titulo-dialog-privacidade" class="h4" tabindex="-1"></h1>
+      <p id="descricao-dialog-privacidade"></p>
+      <div class="d-flex flex-wrap justify-content-end gap-2">
+        <button id="cancelar-privacidade" class="btn btn-outline-secondary rounded-pill" type="button" autofocus>Cancelar</button>
+        <button id="confirmar-privacidade" class="btn login-entrar rounded-pill" type="button">Confirmar</button>
+      </div>
     </dialog>
 
     <!-- Nova senha: formulário compartilhado pela recuperação e pelas contas -->

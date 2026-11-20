@@ -106,6 +106,8 @@ document.querySelector('#voltar-termos').addEventListener('click', () => {
 formularioTermos.addEventListener('submit', (evento) => {
   evento.preventDefault()
   if (!formularioTermos.reportValidity()) return
+  consentimentoCamera = true
+  atualizarPrivacidadeConta()
   trocarTela(telaTermos, telaMonitoramento, tituloMonitoramento)
 })
 
@@ -157,6 +159,10 @@ menuPaciente.addEventListener('click', (evento) => {
 })
 
 document.querySelector('#sair-paciente').addEventListener('click', () => {
+  consentimentoCamera = false
+  pedidosPrivacidade.length = 0
+  statusPrivacidadeConta.textContent = ''
+  atualizarPrivacidadeConta()
   menuPaciente.close()
   formularioLogin.reset()
   fecharTelaSessao()
@@ -352,6 +358,10 @@ document.querySelector('#preparar-sessao').addEventListener('click', () => {
 })
 
 botaoAlternarSessao.addEventListener('click', () => {
+  if (!consentimentoCamera) {
+    estadoSessao.textContent = 'Autorize o uso da câmera em Minha conta antes de iniciar o monitoramento.'
+    return
+  }
   if (inicioCronometro !== null) {
     pararCronometro()
     quantidadePausas += 1
@@ -1706,3 +1716,93 @@ document.querySelector('#copiar-senha-paciente').addEventListener('click', async
     statusAdicionarPaciente.textContent = 'Selecione a senha e use Ctrl+C para copiar.'
   }
 })
+
+
+// Estado local de demonstração. Solicitações deverão ser persistidas no backend.
+let consentimentoCamera = false
+const pedidosPrivacidade = []
+let acaoPrivacidade = null
+const dialogPrivacidade = document.querySelector('#dialog-privacidade')
+const statusPrivacidadeConta = document.querySelector('#status-privacidade-conta')
+const botaoRevogarConsentimento = document.querySelector('#revogar-consentimento')
+const botaoAutorizarConsentimento = document.querySelector('#autorizar-consentimento')
+const botoesPedidosPrivacidade = {
+  exportacao: document.querySelector('#solicitar-exportacao'),
+  exclusao: document.querySelector('#solicitar-exclusao'),
+}
+const acoesPrivacidade = {
+  revogar: {
+    titulo: 'Revogar consentimento?',
+    descricao: 'O monitoramento será interrompido e dependerá de uma nova autorização para ser retomado.',
+  },
+  autorizar: {
+    titulo: 'Autorizar o uso da câmera?',
+    descricao: 'Você autoriza o uso da câmera durante as sessões para observar direção visual, postura, presença e expressões faciais. Você pode pausar ou revogar esta autorização quando desejar.',
+  },
+  exportacao: {
+    titulo: 'Solicitar exportação dos dados?',
+    descricao: 'Seu pedido de cópia dos dados será registrado nesta demonstração. O processamento da solicitação será disponibilizado com a integração do serviço.',
+  },
+  exclusao: {
+    titulo: 'Solicitar exclusão dos dados?',
+    descricao: 'Seu pedido de exclusão será registrado nesta demonstração. A execução da exclusão será disponibilizada com a integração do serviço.',
+  },
+}
+
+function atualizarPrivacidadeConta() {
+  document.querySelector('#estado-consentimento-conta').textContent =
+    consentimentoCamera ? 'Consentimento da câmera ativo.' : 'Consentimento da câmera revogado ou pendente.'
+  botaoRevogarConsentimento.disabled = !consentimentoCamera
+  botaoAutorizarConsentimento.hidden = consentimentoCamera
+  const itens = pedidosPrivacidade.map((pedido) => {
+    const item = document.createElement('li')
+    const data = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(pedido.data))
+    item.textContent = (pedido.tipo === 'exportacao' ? 'Exportação' : 'Exclusão') + ' solicitada em ' + data + ' · Aguardando integração'
+    return item
+  })
+  document.querySelector('#solicitacoes-privacidade').replaceChildren(...itens)
+  for (const [tipo, botao] of Object.entries(botoesPedidosPrivacidade)) {
+    botao.disabled = pedidosPrivacidade.some((pedido) => pedido.tipo === tipo)
+  }
+}
+
+function confirmarAcaoPrivacidade(acao) {
+  acaoPrivacidade = acao
+  document.querySelector('#titulo-dialog-privacidade').textContent = acoesPrivacidade[acao].titulo
+  document.querySelector('#descricao-dialog-privacidade').textContent = acoesPrivacidade[acao].descricao
+  const confirmar = document.querySelector('#confirmar-privacidade')
+  confirmar.className = acao === 'revogar' || acao === 'exclusao'
+    ? 'btn btn-danger rounded-pill'
+    : 'btn login-entrar rounded-pill'
+  dialogPrivacidade.showModal()
+}
+
+botaoRevogarConsentimento.addEventListener('click', () => confirmarAcaoPrivacidade('revogar'))
+botaoAutorizarConsentimento.addEventListener('click', () => confirmarAcaoPrivacidade('autorizar'))
+for (const [tipo, botao] of Object.entries(botoesPedidosPrivacidade)) {
+  botao.addEventListener('click', () => confirmarAcaoPrivacidade(tipo))
+}
+document.querySelector('#cancelar-privacidade').addEventListener('click', () => dialogPrivacidade.close())
+dialogPrivacidade.addEventListener('close', () => { acaoPrivacidade = null })
+
+document.querySelector('#confirmar-privacidade').addEventListener('click', () => {
+  const acao = acaoPrivacidade
+  if (!acao) return
+  if (acao === 'revogar') {
+    consentimentoCamera = false
+    pararCronometro()
+    formularioTermos.reset()
+    botaoAlternarSessao.textContent = 'Retomar monitoramento'
+    estadoSessao.textContent = 'Monitoramento interrompido após a revogação do consentimento.'
+    statusPrivacidadeConta.textContent = 'Consentimento revogado nesta demonstração.'
+  } else if (acao === 'autorizar') {
+    consentimentoCamera = true
+    statusPrivacidadeConta.textContent = 'Consentimento autorizado nesta demonstração.'
+  } else if (!pedidosPrivacidade.some((pedido) => pedido.tipo === acao)) {
+    pedidosPrivacidade.push({ tipo: acao, data: new Date().toISOString() })
+    statusPrivacidadeConta.textContent = 'Solicitação registrada nesta demonstração. O processamento depende da integração do serviço.'
+  }
+  atualizarPrivacidadeConta()
+  dialogPrivacidade.close()
+})
+atualizarPrivacidadeConta()
