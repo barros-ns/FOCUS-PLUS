@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './style.css'
+import { listarSessoesRelatorios, filtrarSessoesRelatorio, consolidarIndicadoresRelatorio, quantidadeCheckins } from './relatorios.js'
 import { criarIndicadoresVisuais, exibirIndicadoresVisuais } from './indicadores.js'
 import './transicoes.js'
 import { iniciarAbertura } from './abertura.js'
@@ -1017,9 +1018,13 @@ function renderizarRelatorioSemanal() {
   botaoVerAnotacoes.setAttribute('aria-expanded', 'false')
   desenharGraficoSemanal(minutos)
   renderizarAnotacoesSemanais()
+  renderizarRelatorioPorPeriodo()
 }
 
 document.querySelector('#abrir-relatorio-semanal').addEventListener('click', () => {
+  tipoRelatorio.value = 'semanal'
+  diaRelatorio.value = chaveDataLocal(new Date())
+  mesRelatorio.value = chaveDataLocal(new Date()).slice(0, 7)
   montarSemanasRelatorio()
   renderizarRelatorioSemanal()
   trocarTela(perfilProfissionalPaciente, telaRelatorioSemanal, document.querySelector('#titulo-relatorio-semanal'))
@@ -1041,6 +1046,7 @@ document.querySelector('#form-anotacao-semanal').addEventListener('submit', (eve
   campoAnotacaoSemanal.value = ''
   statusAnotacaoSemanal.textContent = 'Anotação salva nesta demonstração.'
   renderizarAnotacoesSemanais()
+  renderizarRelatorioPorPeriodo()
 })
 botaoVerAnotacoes.addEventListener('click', () => {
   const abrir = listaAnotacoesSemanais.hidden
@@ -1331,6 +1337,7 @@ function renderizarPaginaAnotacoes() {
   const comentarios = []
   pacienteSelecionado.semanasRelatorio.forEach((semana, indiceSemana) => {
     function selecionarRelatorioOrigem() {
+      tipoRelatorio.value = 'semanal'
       seletorSemanaRelatorio.value = indiceSemana
       renderizarRelatorioSemanal()
     }
@@ -1931,3 +1938,102 @@ menuGerenciarPacientes.addEventListener('keydown', (evento) => {
   menuGerenciarPacientes.open = false
   menuGerenciarPacientes.querySelector('summary').focus()
 })
+
+
+// Diário e mensal reutilizam os mesmos registros e detalhes do relatório semanal.
+const tipoRelatorio = document.querySelector('#relatorio-tipo')
+const diaRelatorio = document.querySelector('#relatorio-data')
+const mesRelatorio = document.querySelector('#relatorio-mes')
+const dataRelatorioCompleta = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' })
+
+function renderizarRelatorioPorPeriodo() {
+  const tipo = tipoRelatorio.value
+  const sessoes = listarSessoesRelatorios(pacienteSelecionado.semanasRelatorio)
+  const indiceSemana = Number(seletorSemanaRelatorio.value)
+  const filtradas = tipo === 'semanal'
+    ? sessoes.filter((sessao) => sessao.indiceSemana === indiceSemana)
+    : filtrarSessoesRelatorio(sessoes, tipo, tipo === 'diario' ? diaRelatorio.value : mesRelatorio.value)
+
+  document.querySelector('#filtro-relatorio-diario').hidden = tipo !== 'diario'
+  document.querySelector('#filtro-relatorio-mensal').hidden = tipo !== 'mensal'
+  for (const bloco of telaRelatorioSemanal.querySelectorAll('[data-exclusivo-semanal]')) bloco.hidden = tipo !== 'semanal'
+  const titulos = { diario: 'Relatório Diário', semanal: 'Relatório Semanal', mensal: 'Relatório Mensal' }
+  document.querySelector('#titulo-relatorio-semanal').textContent = titulos[tipo]
+  let periodo = periodoRelatorio(semanaRelatorioAtual())
+  if (tipo === 'diario') periodo = diaRelatorio.value ? dataRelatorioCompleta.format(new Date(diaRelatorio.value + 'T12:00:00')) : 'Selecione um dia.'
+  if (tipo === 'mensal') periodo = mesRelatorio.value
+    ? new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(mesRelatorio.value + '-01T12:00:00'))
+    : 'Selecione um mês.'
+  document.querySelector('#relatorio-periodo').textContent = periodo
+
+  const minutos = filtradas.reduce((total, sessao) => total + sessao.minutos, 0)
+  document.querySelector('#relatorio-total').textContent = filtradas.length
+  document.querySelector('#relatorio-tempo').textContent = Math.floor(minutos / 60) + 'h' + String(minutos % 60).padStart(2, '0') + 'min'
+  document.querySelector('#relatorio-checkins').textContent = filtradas.reduce((total, sessao) => total + quantidadeCheckins(sessao), 0)
+  const indicadores = consolidarIndicadoresRelatorio(filtradas)
+  exibirIndicadoresVisuais(document.querySelector('#indicadores-relatorio'), indicadores)
+  document.querySelector('#relatorio-cobertura').textContent =
+    'Percentual ponderado pelo tempo observado: ' + indicadores.sessoesComOlhar + ' de ' + filtradas.length +
+    ' sessões com medição válida. Saídas e tempo observado somam apenas os dados disponíveis.'
+
+  const distribuicao = { Baixa: 0, Moderada: 0, Alta: 0 }
+  let classificadas = 0
+  for (const sessao of filtradas) {
+    for (const checkin of Array.isArray(sessao.checkins) ? sessao.checkins : []) {
+      if (Object.hasOwn(distribuicao, checkin.atencao)) {
+        distribuicao[checkin.atencao] += 1
+        classificadas += 1
+      }
+    }
+  }
+  document.querySelector('#relatorio-checkins-distribuicao').textContent = classificadas
+    ? Object.entries(distribuicao).map(([nivel, total]) => nivel + ': ' + total).join(' · ')
+    : 'Sem respostas de atenção disponíveis neste período.'
+  document.querySelector('#relatorio-vazio').textContent = filtradas.length ? '' : 'Nenhuma sessão neste período.'
+  renderizarComparacaoRelatorio(filtradas)
+}
+
+// Cartões compactos mantêm os indicadores visíveis e revelam o checklist sob demanda.
+function renderizarComparacaoRelatorio(sessoes) {
+  const container = document.querySelector('#relatorio-comparacao')
+  const modelo = document.querySelector('#cartao-comparacao-sessao')
+  const cartoes = sessoes.map((sessao) => {
+    const cartao = modelo.content.cloneNode(true)
+    cartao.querySelector('[data-comparacao-data]').textContent = dataRelatorioCompleta.format(sessao.data)
+    cartao.querySelector('[data-comparacao-titulo]').textContent = 'Sessão ' + sessao.numero
+    cartao.querySelector('[data-comparacao-duracao]').textContent =
+      Math.floor(sessao.minutos / 60) + 'h' + String(sessao.minutos % 60).padStart(2, '0') + 'min'
+
+    const percentual = sessao.indicadoresVisuais?.percentualOlharTela
+    cartao.querySelector('[data-comparacao-olhar]').textContent =
+      Number.isFinite(percentual) && percentual >= 0 && percentual <= 100
+        ? percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%' : 'Não medido'
+    const saidas = sessao.indicadoresVisuais?.saidasEnquadramento
+    cartao.querySelector('[data-comparacao-saidas]').textContent =
+      Number.isInteger(saidas) && saidas >= 0 ? String(saidas) : 'Não medido'
+    cartao.querySelector('[data-comparacao-checkins]').textContent = quantidadeCheckins(sessao)
+
+    const respostas = cartao.querySelector('[data-comparacao-respostas]')
+    perguntasChecklist.forEach(([categoria], indice) => {
+      const grupo = document.createElement('div')
+      const rotulo = document.createElement('dt')
+      rotulo.textContent = categoria
+      const valor = document.createElement('dd')
+      valor.textContent = sessao.respostas?.[indice] ?? 'Não respondida'
+      grupo.append(rotulo, valor)
+      respostas.append(grupo)
+    })
+    const abrir = cartao.querySelector('[data-comparacao-abrir]')
+    abrir.setAttribute('aria-label', 'Ver sessão ' + sessao.numero + ' de ' + dataCurtaRelatorio.format(sessao.data))
+    abrir.addEventListener('click', () => {
+      seletorSemanaRelatorio.value = sessao.indiceSemana
+      abrirSessoesDia(sessao.dia)
+      abrirDetalheSessaoProfissional(sessao.origem, tituloSessoesDia)
+    })
+    return cartao
+  })
+  container.replaceChildren(...cartoes)
+}
+for (const campo of [tipoRelatorio, diaRelatorio, mesRelatorio]) {
+  campo.addEventListener('change', renderizarRelatorioPorPeriodo)
+}

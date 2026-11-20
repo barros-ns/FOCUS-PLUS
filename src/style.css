@@ -875,3 +875,94 @@ dialog[open]::backdrop {
     animation: none;
   }
 }
+
+/* Comparação de sessões sem rolagem horizontal. */
+.comparacao-sessao {
+  border: 1px solid var(--paciente-borda);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.comparacao-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: 1.1rem 1.25rem;
+}
+
+.comparacao-data {
+  margin: 0 0 .35rem;
+  font-size: .8rem;
+  color: var(--paciente-acento);
+}
+
+.comparacao-metricas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem 1.25rem;
+  background: var(--paciente-destaque);
+}
+
+.comparacao-metricas dt,
+.comparacao-respostas dt {
+  font-size: .75rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.comparacao-metricas dd {
+  margin: .35rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--paciente-acento);
+}
+
+.comparacao-checklist summary {
+  padding: 1rem 1.25rem;
+  font-size: .875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.comparacao-checklist summary:focus-visible {
+  outline: 2px solid var(--paciente-acento);
+  outline-offset: -4px;
+  border-radius: .75rem;
+}
+
+.comparacao-respostas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  padding: 0 1.25rem 1.25rem;
+  margin: 0;
+}
+
+.comparacao-respostas > div {
+  border: 1px solid var(--paciente-borda);
+  border-radius: .6rem;
+  padding: .65rem .8rem;
+}
+
+.comparacao-respostas dd {
+  margin: .25rem 0 0;
+  font-size: .875rem;
+  font-weight: 500;
+}
+
+.comparacao-sessao :is(dd, dt) {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+  .comparacao-metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .comparacao-respostas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

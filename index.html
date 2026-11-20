@@ -880,8 +880,8 @@
               <article class="paciente-card h-100">
                 <h2 class="h5 mb-3">Relatórios</h2>
                 <div class="d-grid gap-2">
-                  <button id="abrir-relatorio-semanal" class="btn paciente-controle text-start p-3" type="button"><span class="d-block fw-bold">Relatório Semanal</span>
-                    <span class="small">Última semana</span>
+                  <button id="abrir-relatorio-semanal" class="btn paciente-controle text-start p-3" type="button"><span class="d-block fw-bold">Relatórios</span>
+                    <span class="small">Diário, semanal e mensal</span>
                   </button>
                   <button id="abrir-evolucao-paciente" class="btn paciente-controle text-start p-3" type="button"><span class="d-block fw-bold">Evolução</span>
                     <span class="small">Histórico completo</span>
@@ -951,6 +951,24 @@
           <button id="relatorio-voltar" class="btn paciente-controle mb-3" type="button">← Perfil do paciente</button>
           <h1 id="titulo-relatorio-semanal" class="h2" tabindex="-1">Relatório Semanal</h1>
           <p id="relatorio-periodo" class="mb-4"></p>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-4">
+              <label for="relatorio-tipo" class="form-label">Visualização</label>
+              <select id="relatorio-tipo" class="form-select">
+                <option value="diario">Diário</option>
+                <option value="semanal" selected>Semanal</option>
+                <option value="mensal">Mensal</option>
+              </select>
+            </div>
+            <div id="filtro-relatorio-diario" class="col-12 col-sm-8" hidden>
+              <label for="relatorio-data" class="form-label">Dia</label>
+              <input id="relatorio-data" class="form-control" type="date" required>
+            </div>
+            <div id="filtro-relatorio-mensal" class="col-12 col-sm-8" hidden>
+              <label for="relatorio-mes" class="form-label">Mês</label>
+              <input id="relatorio-mes" class="form-control" type="month" required>
+            </div>
+          </div>
 
           <div class="row g-3 mb-4">
             <div class="col-6 col-lg-3"><article class="paciente-card h-100">
@@ -968,7 +986,54 @@
             </article></div>
           </div>
 
+          <!-- Consolidação do período: indicadores e contexto de cada sessão -->
           <article class="paciente-card mb-3">
+            <h2 class="h5">Indicadores visuais do período</h2>
+            <div id="indicadores-relatorio" data-indicadores-visuais>
+              <dl class="row g-3 mb-0">
+                <div class="col-12 col-sm-6">
+                  <dt class="small fw-normal">Tempo com olhar direcionado à tela</dt>
+                  <dd data-indicador-olhar class="h4 mb-0">Não medido</dd>
+                </div>
+                <div class="col-12 col-sm-6">
+                  <dt class="small fw-normal">Saídas do enquadramento</dt>
+                  <dd data-indicador-saidas class="h4 mb-0">Não medido</dd>
+                </div>
+              </dl>
+              <p class="small mt-3 mb-1">Tempo observado: <strong data-indicador-tempo>Não medido</strong></p>
+            </div>
+            <p id="relatorio-cobertura" class="small mb-0"></p>
+          </article>
+          <article class="paciente-card mb-3">
+            <h2 class="h5">Checklist, check-ins e observação por sessão</h2>
+            <p id="relatorio-checkins-distribuicao" class="small"></p>
+            <p id="relatorio-vazio" role="status"></p>
+            <div id="relatorio-comparacao" class="d-grid gap-3"></div>
+            <template id="cartao-comparacao-sessao">
+              <article class="comparacao-sessao">
+                <header class="comparacao-cabecalho">
+                  <div>
+                    <p class="comparacao-data" data-comparacao-data></p>
+                    <h3 class="h5 mb-0" data-comparacao-titulo></h3>
+                  </div>
+                  <button class="btn paciente-controle rounded-pill px-3" type="button" data-comparacao-abrir>Ver sessão <span aria-hidden="true">↗</span></button>
+                </header>
+
+                <dl class="comparacao-metricas">
+                  <div><dt>Duração</dt><dd data-comparacao-duracao></dd></div>
+                  <div><dt>Olhar para a tela</dt><dd data-comparacao-olhar></dd></div>
+                  <div><dt>Saídas do enquadramento</dt><dd data-comparacao-saidas></dd></div>
+                  <div><dt>Check-ins</dt><dd data-comparacao-checkins></dd></div>
+                </dl>
+
+                <details class="comparacao-checklist">
+                  <summary>Respostas do checklist</summary>
+                  <dl class="comparacao-respostas" data-comparacao-respostas></dl>
+                </details>
+              </article>
+            </template>
+          </article>
+          <article data-exclusivo-semanal class="paciente-card mb-3">
             <header class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
               <h2 class="h5 mb-0">Tempo da sessão por dia (minutos)</h2>
               <div>
@@ -983,7 +1048,7 @@
             <p id="relatorio-dados-grafico" class="small mb-0 mt-2"></p>
           </article>
 
-          <article class="paciente-card">
+          <article data-exclusivo-semanal class="paciente-card">
             <h2 class="h5">Anotações do Profissional</h2>
             <form id="form-anotacao-semanal">
               <label for="anotacao-semanal" class="visually-hidden">Observações sobre esta semana</label>
@@ -1000,7 +1065,7 @@
 
         <!-- Relatório: sessões do dia selecionado -->
         <section id="profissional-sessoes-dia" aria-labelledby="titulo-profissional-sessoes-dia" hidden>
-          <button id="voltar-relatorio-dia" class="btn paciente-controle mb-3" type="button">← Relatório semanal</button>
+          <button id="voltar-relatorio-dia" class="btn paciente-controle mb-3" type="button">← Relatório</button>
           <h1 id="titulo-profissional-sessoes-dia" class="h2" tabindex="-1">Sessões do dia</h1>
           <p id="data-profissional-sessoes-dia"></p>
           <p id="vazio-profissional-sessoes-dia" hidden>Nenhuma sessão registrada neste dia.</p>
