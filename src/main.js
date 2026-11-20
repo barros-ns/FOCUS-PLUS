@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './style.css'
 
+// Referências às telas iniciais e aos formulários compartilhados de acesso.
 const botaoComecar = document.querySelector('#btn-comecar')
 const telaInicio = document.querySelector('#tela-inicio')
 const telaPerfil = document.querySelector('#tela-perfil')
@@ -29,6 +30,7 @@ const tituloAcessoPaciente = document.querySelector('#titulo-acesso-paciente')
 let rotuloLogin = ''
 let ultimoPerfil = null
 
+// Troca a visibilidade das áreas e leva o foco ao título ou controle da próxima tela.
 function trocarTela(atual, proxima, foco) {
   atual.hidden = true
   proxima.hidden = false
@@ -64,6 +66,7 @@ document.querySelector('#voltar-perfis').addEventListener('click', () => {
   trocarTela(telaLogin, telaPerfil, ultimoPerfil ?? tituloPerfil)
 })
 
+// Acesso de demonstração: esta navegação ainda precisa da validação de identidade pelo Supabase.
 formularioLogin.addEventListener('submit', (evento) => {
   evento.preventDefault()
   if (ultimoPerfil?.dataset.perfil === 'paciente') {
@@ -103,6 +106,7 @@ document.querySelector('#voltar-termos').addEventListener('click', () => {
   trocarTela(telaTermos, telaLogin, tituloLogin)
 })
 
+// Primeiro acesso do paciente: consentimento, explicação, câmera e configuração de monitores.
 formularioTermos.addEventListener('submit', (evento) => {
   evento.preventDefault()
   if (!formularioTermos.reportValidity()) return
@@ -126,6 +130,7 @@ formularioConfiguracaoTelas.addEventListener('submit', (evento) => {
   trocarTela(telaConfiguracaoTelas, telaAcessoPaciente, tituloAcessoPaciente)
 })
 
+// Menu, notificações e saída do paciente.
 const menuPaciente = document.querySelector('#menu-paciente')
 const notificacoesPaciente = document.querySelector('#notificacoes-paciente')
 const botaoTema = document.querySelector('#tema-paciente')
@@ -193,6 +198,7 @@ notificacoesPaciente.addEventListener('keydown', (evento) => {
   notificacoesPaciente.querySelector('summary').focus()
 })
 
+// Protocolo base e respostas do checklist em andamento. O editor do profissional mantém sua própria cópia.
 const perguntasChecklist = [
   ['Sono', 'Como você avalia seu sono na última noite?', ['Ruim', 'Regular', 'Bom']],
   ['Cansaço', 'Quanto cansaço você está sentindo neste momento?', ['Baixo ou nenhum', 'Moderado', 'Alto']],
@@ -223,6 +229,7 @@ function mostrarInicioPaciente(foco = tituloAcessoPaciente) {
   foco.focus()
 }
 
+// Renderiza uma pergunta e guarda a resposta escolhida antes de avançar.
 function renderizarChecklist() {
   const [topico, pergunta, opcoes] = perguntasChecklist[indiceChecklist]
   const etapa = indiceChecklist + 1
@@ -273,6 +280,7 @@ botaoVoltarChecklist.addEventListener('click', () => {
   perguntaChecklist.focus()
 })
 
+// Confirmação do checklist: associa cada resposta ao tópico correspondente.
 function renderizarResumoChecklist() {
   const resumo = document.querySelector('#resumo-checklist')
   const linhas = perguntasChecklist.map(([topico], indice) => {
@@ -290,6 +298,7 @@ function renderizarResumoChecklist() {
   resumo.replaceChildren(...linhas)
 }
 
+// Controles da sessão e estado do cronômetro, das pausas e dos check-ins.
 const telaSessao = document.querySelector('#sessao-paciente')
 const tituloSessao = document.querySelector('#titulo-sessao')
 const tempoSessao = document.querySelector('#tempo-sessao')
@@ -312,6 +321,7 @@ const INTERVALO_CHECKIN_MS = 10 * 1000
 let proximoCheckin = INTERVALO_CHECKIN_MS
 const checkinsSessao = []
 
+// Soma intervalos ativos usando performance.now. O horário de calendário é registrado separadamente.
 function atualizarCronometro() {
   const tempoEmCurso = inicioCronometro === null ? 0 : performance.now() - inicioCronometro
   const tempoAtivo = tempoAcumulado + tempoEmCurso
@@ -324,6 +334,7 @@ function atualizarCronometro() {
   ].map((valor) => String(valor).padStart(2, '0')).join(':')
 }
 
+// Fecha o check-in e acumula o intervalo ativo antes de suspender a atualização do relógio.
 function pararCronometro() {
   if (dialogCheckin.open) dialogCheckin.close()
   if (inicioCronometro === null) return
@@ -340,6 +351,7 @@ function fecharTelaSessao() {
   telaSessaoFinalizada.hidden = true
 }
 
+// Cada nova sessão começa com cronômetro, pausas e check-ins zerados.
 document.querySelector('#preparar-sessao').addEventListener('click', () => {
   pararCronometro()
   numeroSessao += 1
@@ -392,6 +404,7 @@ botaoFinalizarSessao.addEventListener('click', () => {
 
 botaoVoltarSessao.addEventListener('click', () => mostrarInicioPaciente())
 
+// Mapa das páginas internas do paciente usado pelos botões do menu.
 const telasMenuPaciente = {
   'titulo-configuracoes-paciente': document.querySelector('#configuracoes-paciente'),
   'titulo-meu-historico': document.querySelector('#historico-paciente'),
@@ -418,6 +431,7 @@ function mostrarTelaMenuPaciente(tela, titulo) {
   trocarTela(inicioPaciente, tela, titulo)
 }
 
+// Libera a URL temporária da foto para evitar manter arquivos locais em memória.
 function limparFotoPaciente() {
   if (fotoLocalPaciente !== null) URL.revokeObjectURL(fotoLocalPaciente)
   fotoLocalPaciente = null
@@ -448,6 +462,7 @@ arquivoFotoPaciente.addEventListener('change', () => {
   statusFotoPaciente.textContent = 'Prévia da foto atualizada nesta visita.'
 })
 
+// Edição do perfil do paciente: leitura, formulário, cancelamento e dados da demonstração.
 const botaoEditarConta = document.querySelector('#editar-conta-paciente')
 const dadosConta = document.querySelector('#dados-conta-paciente')
 const formularioConta = document.querySelector('#form-editar-conta')
@@ -522,6 +537,7 @@ formularioConta.addEventListener('submit', (evento) => {
   botaoEditarConta.focus()
 })
 
+// Histórico local do paciente. O array será substituído pela consulta de registros persistidos.
 const sessoesFinalizadas = []
 const filtroHistorico = document.querySelector('#filtro-historico')
 const datasHistorico = document.querySelector('#datas-historico')
@@ -540,6 +556,7 @@ function chaveDataLocal(data) {
   ].join('-')
 }
 
+// Copia os dados no encerramento para que futuras respostas não alterem sessões anteriores.
 function registrarSessaoFinalizada() {
   sessoesFinalizadas.unshift({
     numero: tituloSessao.textContent,
@@ -577,6 +594,7 @@ function criarItemHistorico(sessao) {
   return item
 }
 
+// Filtra pelo dia local de início da sessão e valida o intervalo personalizado.
 function renderizarHistorico() {
   const periodo = new FormData(filtroHistorico).get('periodo')
   const personalizado = periodo === 'personalizado'
@@ -636,6 +654,7 @@ const menuProfissional = document.querySelector('#menu-profissional')
 const notificacoesProfissional = document.querySelector('#notificacoes-profissional')
 const temaProfissional = document.querySelector('#tema-profissional')
 
+// Calcula indicadores e cria os cartões de pacientes a partir da lista do profissional.
 function renderizarDashboardProfissional() {
   document.querySelector('#profissional-pacientes-ativos').textContent =
     pacientesProfissional.filter((paciente) => paciente.ativo).length
@@ -689,6 +708,7 @@ notificacoesProfissional.addEventListener('keydown', (evento) => {
   notificacoesProfissional.querySelector('summary').focus()
 })
 
+// Navegação entre dashboard e perfil individual dentro da área profissional.
 const dashboardProfissional = document.querySelector('#dashboard-profissional')
 const perfilProfissionalPaciente = document.querySelector('#perfil-profissional-paciente')
 const tituloPerfilProfissionalPaciente = document.querySelector('#titulo-perfil-profissional-paciente')
@@ -761,6 +781,7 @@ const modeloPerguntaProtocolo = document.querySelector('#modelo-pergunta-protoco
 const statusProtocolo = document.querySelector('#status-protocolo')
 let pacienteSelecionado = null
 
+// Editor de uma pergunta: ativação, cópia para edição e gravação somente ao salvar.
 function criarCartaoProtocolo(questao) {
   const fragmento = modeloPerguntaProtocolo.content.cloneNode(true)
   const cartao = fragmento.querySelector('article')
@@ -857,6 +878,7 @@ const listaAnotacoesSemanais = document.querySelector('#lista-anotacoes-semanais
 const botaoVerAnotacoes = document.querySelector('#ver-anotacoes-semanais')
 const dataCurtaRelatorio = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
+// Inicializa uma semana fictícia por paciente e monta as opções do relatório.
 function montarSemanasRelatorio() {
   if (!pacienteSelecionado.semanasRelatorio) {
     const segunda = new Date()
@@ -900,6 +922,7 @@ function periodoRelatorio(semana) {
   return 'Semana de ' + dataCurtaRelatorio.format(semana.inicio) + ' a ' + dataCurtaRelatorio.format(fim)
 }
 
+// Desenha eixos, linha e pontos em SVG. Pontos e botões dos dias abrem as sessões correspondentes.
 function desenharGraficoSemanal(minutos) {
   const svg = document.querySelector('#relatorio-grafico')
   svg.replaceChildren()
@@ -1180,6 +1203,7 @@ function dadosEvolucaoPaciente(quantidadeMeses) {
   }))
 }
 
+// Usa lacunas para meses sem atenção avaliada. Ausência de nota não vira pontuação zero.
 function desenharGraficoEvolucao(id, titulo, descricao, meses, valores, teto, unidade) {
   const svg = document.getElementById(id)
   svg.replaceChildren()
@@ -1222,6 +1246,7 @@ function desenharGraficoEvolucao(id, titulo, descricao, meses, valores, teto, un
   })
 }
 
+// Cada gráfico consulta seu próprio período selecionado.
 function renderizarEvolucaoPaciente() {
   const mesesSessoes = dadosEvolucaoPaciente(Number(document.querySelector('#periodo-evolucao-sessoes').value))
   const mesesAtencao = dadosEvolucaoPaciente(Number(document.querySelector('#periodo-evolucao-atencao').value))
@@ -1281,6 +1306,7 @@ function criarAnotacaoComOrigem(texto, origem, href, abrirOrigem) {
   return bloco
 }
 
+// Agrupa observações por origem e cria links que restauram a semana e a sessão corretas.
 function renderizarPaginaAnotacoes() {
   const notas = []
   const comentarios = []
@@ -1343,6 +1369,7 @@ document.querySelector('#pacientes-menu-profissional').addEventListener('click',
   document.querySelector('#titulo-lista-pacientes-profissional').focus()
 })
 
+// Perfil do profissional: dados, edição e foto temporária.
 const telaContaProfissional = document.querySelector('#conta-profissional')
 const formularioContaProfissional = document.querySelector('#form-conta-profissional')
 const dadosContaProfissional = document.querySelector('#dados-conta-profissional')
@@ -1588,6 +1615,7 @@ document.querySelector('#concluir-nova-senha').addEventListener('click', () => d
 const dialogCheckin = document.querySelector('#checkin-atencao')
 const lembretesCheckin = document.querySelector('#form-configuracoes-paciente').elements.lembretes
 
+// Considera somente tempo ativo e impede repetição de janelas enquanto há um diálogo aberto.
 function verificarCheckin(tempoAtivo) {
   if (inicioCronometro === null || fimSessao !== null || telaSessao.hidden || tempoAtivo < proximoCheckin) return
 
@@ -1628,6 +1656,7 @@ const resultadoAdicionarPaciente = document.querySelector('#resultado-adicionar-
 const senhaEntradaPaciente = document.querySelector('#senha-entrada-paciente')
 const statusAdicionarPaciente = document.querySelector('#status-adicionar-paciente')
 
+// Gera uma senha aleatória com Web Crypto. A conta real deverá ser criada por uma operação autorizada no servidor.
 function gerarSenhaEntrada() {
   const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
   const bytes = crypto.getRandomValues(new Uint8Array(18))
@@ -1749,6 +1778,7 @@ const acoesPrivacidade = {
   },
 }
 
+// Consentimento e solicitações são locais. A futura API deve persistir os pedidos e aplicar permissões no servidor.
 function atualizarPrivacidadeConta() {
   document.querySelector('#estado-consentimento-conta').textContent =
     consentimentoCamera ? 'Consentimento da câmera ativo.' : 'Consentimento da câmera revogado ou pendente.'
