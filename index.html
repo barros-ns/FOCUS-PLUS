@@ -504,6 +504,22 @@
                 <p class="mb-1">Pausas: <strong data-sessao-pausas></strong></p>
                 <p class="mb-1">Check-ins: <strong data-sessao-checkins>0 registrados</strong></p>
                 <p>Qualidade da câmera no geral: <strong>Indisponível</strong></p>
+          <!-- Indicadores complementares calculados apenas durante observação válida -->
+          <div data-indicadores-historico data-indicadores-visuais class="border-top pt-3 mb-4">
+            <h3 class="h6">Indicadores visuais da sessão</h3>
+            <dl class="row g-3 mb-0">
+              <div class="col-12 col-sm-6">
+                <dt class="fw-normal small">Tempo com olhar direcionado à tela</dt>
+                <dd data-indicador-olhar class="h5 mb-0 mt-1">Não medido</dd>
+              </div>
+              <div class="col-12 col-sm-6">
+                <dt class="fw-normal small">Saídas do enquadramento</dt>
+                <dd data-indicador-saidas class="h5 mb-0 mt-1">Não medido</dd>
+              </div>
+            </dl>
+            <p class="small mt-3 mb-1">Tempo observado: <strong data-indicador-tempo>Não medido</strong></p>
+            <p class="small mb-0">O percentual considera o tempo com observação válida. Interprete estes indicadores junto ao checklist e aos check-ins da sessão.</p>
+          </div>
                 <h3 class="h6">Respostas do checklist</h3>
                 <dl class="mb-0" data-sessao-checklist></dl>
               </div>
@@ -649,6 +665,22 @@
             <strong id="qualidade-captura">Indisponível</strong>
           </div>
 
+          <!-- Indicadores complementares calculados apenas durante observação válida -->
+          <div id="indicadores-sessao" data-indicadores-visuais class="border-top pt-3 mb-4">
+            <h3 class="h6">Indicadores visuais da sessão</h3>
+            <dl class="row g-3 mb-0">
+              <div class="col-12 col-sm-6">
+                <dt class="fw-normal small">Tempo com olhar direcionado à tela</dt>
+                <dd data-indicador-olhar class="h5 mb-0 mt-1">Não medido</dd>
+              </div>
+              <div class="col-12 col-sm-6">
+                <dt class="fw-normal small">Saídas do enquadramento</dt>
+                <dd data-indicador-saidas class="h5 mb-0 mt-1">Não medido</dd>
+              </div>
+            </dl>
+            <p class="small mt-3 mb-1">Tempo observado: <strong data-indicador-tempo>Não medido</strong></p>
+            <p class="small mb-0">O percentual considera o tempo com observação válida. Interprete estes indicadores junto ao checklist e aos check-ins da sessão.</p>
+          </div>
           <p id="estado-sessao" class="small text-center" role="status">Pronta para iniciar. A câmera ainda não está integrada.</p>
           <div class="d-grid d-sm-flex justify-content-sm-center gap-2">
             <button id="alternar-sessao" class="btn login-entrar rounded-pill px-4" type="button">Iniciar monitoramento</button>
@@ -692,6 +724,22 @@
             </div>
           </dl>
 
+          <!-- Indicadores complementares calculados apenas durante observação válida -->
+          <div id="indicadores-resumo-sessao" data-indicadores-visuais class="border-top pt-3 mb-4">
+            <h3 class="h6">Indicadores visuais da sessão</h3>
+            <dl class="row g-3 mb-0">
+              <div class="col-12 col-sm-6">
+                <dt class="fw-normal small">Tempo com olhar direcionado à tela</dt>
+                <dd data-indicador-olhar class="h5 mb-0 mt-1">Não medido</dd>
+              </div>
+              <div class="col-12 col-sm-6">
+                <dt class="fw-normal small">Saídas do enquadramento</dt>
+                <dd data-indicador-saidas class="h5 mb-0 mt-1">Não medido</dd>
+              </div>
+            </dl>
+            <p class="small mt-3 mb-1">Tempo observado: <strong data-indicador-tempo>Não medido</strong></p>
+            <p class="small mb-0">O percentual considera o tempo com observação válida. Interprete estes indicadores junto ao checklist e aos check-ins da sessão.</p>
+          </div>
           <button id="encerrar-visualizacao-sessao" class="btn login-entrar rounded-pill w-100" type="button">Voltar ao início</button>
         </section>
 
@@ -968,6 +1016,22 @@
             <p>Pausas: <strong id="profissional-sessao-pausas"></strong></p>
             <p>Check-ins: <strong id="profissional-sessao-checkins"></strong> registrados</p>
             <p>Qualidade da câmera no geral: <strong id="profissional-sessao-qualidade"></strong></p>
+          <!-- Indicadores complementares calculados apenas durante observação válida -->
+          <div id="indicadores-profissional" data-indicadores-visuais class="border-top pt-3 mb-4">
+            <h3 class="h6">Indicadores visuais da sessão</h3>
+            <dl class="row g-3 mb-0">
+              <div class="col-12 col-sm-6">
+                <dt class="fw-normal small">Tempo com olhar direcionado à tela</dt>
+                <dd data-indicador-olhar class="h5 mb-0 mt-1">Não medido</dd>
+              </div>
+              <div class="col-12 col-sm-6">
+                <dt class="fw-normal small">Saídas do enquadramento</dt>
+                <dd data-indicador-saidas class="h5 mb-0 mt-1">Não medido</dd>
+              </div>
+            </dl>
+            <p class="small mt-3 mb-1">Tempo observado: <strong data-indicador-tempo>Não medido</strong></p>
+            <p class="small mb-0">O percentual considera o tempo com observação válida. Interprete estes indicadores junto ao checklist e aos check-ins da sessão.</p>
+          </div>
             <h2 class="h5 mt-4">Respostas do checklist</h2>
             <dl id="profissional-sessao-respostas" class="conta-dados mb-0"></dl>
           </article>

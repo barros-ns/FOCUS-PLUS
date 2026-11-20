@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './style.css'
+import { criarIndicadoresVisuais, exibirIndicadoresVisuais } from './indicadores.js'
 import './transicoes.js'
 import { iniciarAbertura } from './abertura.js'
 
@@ -314,6 +315,7 @@ const telaSessaoFinalizada = document.querySelector('#sessao-finalizada')
 const tituloSessaoFinalizada = document.querySelector('#titulo-sessao-finalizada')
 const duracaoSessaoFinalizada = document.querySelector('#duracao-sessao-finalizada')
 const botaoVoltarSessao = document.querySelector('#encerrar-visualizacao-sessao')
+let indicadoresVisuaisSessao = criarIndicadoresVisuais()
 let numeroSessao = 0
 let tempoAcumulado = 0
 let inicioCronometro = null
@@ -359,6 +361,8 @@ function fecharTelaSessao() {
 // Cada nova sessão começa com cronômetro, pausas e check-ins zerados.
 document.querySelector('#preparar-sessao').addEventListener('click', () => {
   pararCronometro()
+  indicadoresVisuaisSessao = criarIndicadoresVisuais()
+  exibirIndicadoresVisuais(document.querySelector('#indicadores-sessao'), indicadoresVisuaisSessao)
   numeroSessao += 1
   tempoAcumulado = 0
   quantidadePausas = 0
@@ -403,6 +407,7 @@ botaoFinalizarSessao.addEventListener('click', () => {
   document.querySelector('#pausas-sessao-finalizada').textContent = quantidadePausas
   document.querySelector('#horario-sessao-finalizada').textContent = formatarPeriodoSessao(inicioSessao, fimSessao)
   document.querySelector('#checkins-sessao-finalizada').textContent = checkinsSessao.length + ' registrados'
+  exibirIndicadoresVisuais(document.querySelector('#indicadores-resumo-sessao'), indicadoresVisuaisSessao)
   registrarSessaoFinalizada()
   trocarTela(telaSessao, telaSessaoFinalizada, tituloSessaoFinalizada)
 })
@@ -569,6 +574,7 @@ function registrarSessaoFinalizada() {
     inicio: inicioSessao.toISOString(),
     fim: fimSessao.toISOString(),
     pausas: quantidadePausas,
+    indicadoresVisuais: { ...indicadoresVisuaisSessao },
     checkins: checkinsSessao.map((checkin) => ({ ...checkin })),
     duracao: tempoSessao.textContent,
     completa: tempoAcumulado >= 2 * 60 * 60 * 1000,
@@ -588,6 +594,7 @@ function criarItemHistorico(sessao) {
   item.querySelector('[data-sessao-checkins]').textContent = (sessao.checkins?.length ?? 0) + ' registrados'
   item.querySelector('[data-sessao-horario]').textContent = formatarPeriodoSessao(new Date(sessao.inicio), new Date(sessao.fim))
 
+  exibirIndicadoresVisuais(item.querySelector('[data-indicadores-historico]'), sessao.indicadoresVisuais)
   const checklist = item.querySelector('[data-sessao-checklist]')
   perguntasChecklist.forEach(([topico], indice) => {
     const rotulo = document.createElement('dt')
@@ -905,6 +912,7 @@ function montarSemanasRelatorio() {
         pausas: 0,
         checkins: 0,
         qualidade: 'Indisponível',
+        indicadoresVisuais: criarIndicadoresVisuais(),
         respostas: ['Regular', 'Moderado', 'Moderado', 'Neutro', 'Não', 'Sim', 'Sim, conforme prescrito'],
       }],
 
@@ -1107,6 +1115,7 @@ function abrirDetalheSessaoProfissional(sessao, botao) {
   document.querySelector('#profissional-sessao-checkins').textContent = sessao.checkins
   document.querySelector('#profissional-sessao-qualidade').textContent = sessao.qualidade
 
+  exibirIndicadoresVisuais(document.querySelector('#indicadores-profissional'), sessao.indicadoresVisuais)
   const respostas = document.querySelector('#profissional-sessao-respostas')
   respostas.replaceChildren()
   perguntasChecklist.forEach(([categoria], indice) => {
