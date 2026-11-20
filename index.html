@@ -907,6 +907,7 @@
             <article class="paciente-card">
               <header class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <div class="d-flex flex-wrap align-items-center gap-2">
+                  <span class="protocolo-numero" data-numero-pergunta></span>
                   <h2 class="h6 mb-0 protocolo-bloco rounded-3 px-3 py-2" data-categoria></h2>
                   <span class="protocolo-bloco rounded-3 px-3 py-2 small" data-origem></span>
                 </div>
@@ -915,6 +916,10 @@
                   <span class="form-check-label" data-status-ativa></span>
                 </label>
               </header>
+              <div class="d-flex flex-wrap justify-content-end gap-2 mb-3">
+                <button class="btn paciente-controle btn-sm rounded-3" type="button" data-subir>↑ Subir</button>
+                <button class="btn paciente-controle btn-sm rounded-3" type="button" data-descer>↓ Descer</button>
+              </div>
               <div data-leitura>
                 <p class="fw-semibold" data-pergunta></p>
                 <div class="protocolo-linha-respostas">
@@ -923,6 +928,9 @@
                 </div>
               </div>
               <form data-formulario hidden>
+                <label class="form-label d-block">Categoria
+                  <input name="categoria" class="form-control mt-1" required>
+                </label>
                 <label class="form-label d-block">Pergunta
                   <textarea name="pergunta" class="form-control mt-1" rows="2" required></textarea>
                 </label>

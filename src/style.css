@@ -966,3 +966,20 @@ dialog[open]::backdrop {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Posição da pergunta na ordem configurada para o paciente. */
+.protocolo-numero {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding-inline: .4rem;
+  border: 1px solid var(--paciente-borda);
+  border-radius: .6rem;
+  background: var(--paciente-destaque);
+  color: var(--paciente-acento);
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

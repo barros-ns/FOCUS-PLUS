@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './style.css'
+import { criarProtocoloBase, prepararChecklistIndividual, registrarChecklistIndividual, respostasDaSessao, moverPerguntaProtocolo } from './protocolo.js'
 import { listarSessoesRelatorios, filtrarSessoesRelatorio, consolidarIndicadoresRelatorio, quantidadeCheckins } from './relatorios.js'
 import { criarIndicadoresVisuais, exibirIndicadoresVisuais } from './indicadores.js'
 import './transicoes.js'
@@ -36,6 +37,7 @@ const telaAcessoPaciente = document.querySelector('#tela-acesso-paciente')
 const tituloAcessoPaciente = document.querySelector('#titulo-acesso-paciente')
 let rotuloLogin = ''
 let ultimoPerfil = null
+let pacienteChecklistAtual = null
 
 // Troca a visibilidade das áreas e leva o foco ao título ou controle da próxima tela.
 function trocarTela(atual, proxima, foco) {
@@ -77,6 +79,8 @@ document.querySelector('#voltar-perfis').addEventListener('click', () => {
 formularioLogin.addEventListener('submit', (evento) => {
   evento.preventDefault()
   if (ultimoPerfil?.dataset.perfil === 'paciente') {
+    const email = emailLogin.value.trim().toLowerCase()
+    pacienteChecklistAtual = pacientesProfissional.find((paciente) => paciente.ativo && paciente.email?.toLowerCase() === email) ?? null
     formularioTermos.reset()
     document.querySelector('#login-senha').value = ''
     trocarTela(telaLogin, telaTermos, tituloTermos)
@@ -185,6 +189,7 @@ document.querySelector('#sair-paciente').addEventListener('click', () => {
   sessoesFinalizadas.length = 0
   filtroHistorico.reset()
   renderizarHistorico()
+  pacienteChecklistAtual = null
   ultimoPerfil = null
   respostasChecklist.length = 0
   checklistPaciente.hidden = true
@@ -205,7 +210,7 @@ notificacoesPaciente.addEventListener('keydown', (evento) => {
   notificacoesPaciente.querySelector('summary').focus()
 })
 
-// Protocolo base e respostas do checklist em andamento. O editor do profissional mantém sua própria cópia.
+// Protocolo base. Cada paciente usa uma cópia individual e cada sessão conserva sua versão.
 const perguntasChecklist = [
   ['Sono', 'Como você avalia seu sono na última noite?', ['Ruim', 'Regular', 'Bom']],
   ['Cansaço', 'Quanto cansaço você está sentindo neste momento?', ['Baixo ou nenhum', 'Moderado', 'Alto']],
@@ -225,6 +230,7 @@ const botaoVoltarChecklist = document.querySelector('#checklist-voltar')
 const botaoComecarChecklist = document.querySelector('#comecar-checklist')
 const respostasChecklist = []
 let indiceChecklist = 0
+let perguntasEmUso = []
 
 function mostrarInicioPaciente(foco = tituloAcessoPaciente) {
   fecharEdicaoConta()
@@ -238,14 +244,16 @@ function mostrarInicioPaciente(foco = tituloAcessoPaciente) {
 
 // Renderiza uma pergunta e guarda a resposta escolhida antes de avançar.
 function renderizarChecklist() {
-  const [topico, pergunta, opcoes] = perguntasChecklist[indiceChecklist]
+  const questao = perguntasEmUso[indiceChecklist]
+  const { categoria: topico, pergunta, respostas: opcoes } = questao
   const etapa = indiceChecklist + 1
-  const total = perguntasChecklist.length
+  const total = perguntasEmUso.length
   document.querySelector('#checklist-etapa').textContent = `Pergunta ${etapa} de ${total}`
   document.querySelector('#checklist-percentual').textContent = `${Math.round(etapa * 100 / total)}%`
+  document.querySelector('#checklist-progresso').max = total
   document.querySelector('#checklist-progresso').value = etapa
   document.querySelector('#checklist-topico').textContent = topico
-  document.querySelector('#checklist-emocional').hidden = topico !== 'Estado emocional'
+  document.querySelector('#checklist-emocional').hidden = topico !== 'Estado emocional' || questao.personalizada
   perguntaChecklist.textContent = pergunta
   botaoVoltarChecklist.textContent = indiceChecklist === 0 ? '← Voltar ao início' : '← Pergunta anterior'
 
@@ -271,8 +279,17 @@ function renderizarChecklist() {
 }
 
 botaoComecarChecklist.addEventListener('click', () => {
+  const protocolo = pacienteChecklistAtual
+    ? (pacienteChecklistAtual.protocolo ??= criarProtocoloBase(perguntasChecklist))
+    : criarProtocoloBase(perguntasChecklist)
+  perguntasEmUso = prepararChecklistIndividual(protocolo)
   indiceChecklist = 0
   respostasChecklist.length = 0
+  if (!perguntasEmUso.length) {
+    renderizarResumoChecklist()
+    trocarTela(inicioPaciente, checklistConcluido, document.querySelector('#titulo-checklist-concluido'))
+    return
+  }
   renderizarChecklist()
   trocarTela(inicioPaciente, checklistPaciente, document.querySelector('#titulo-checklist'))
 })
@@ -290,7 +307,7 @@ botaoVoltarChecklist.addEventListener('click', () => {
 // Confirmação do checklist: associa cada resposta ao tópico correspondente.
 function renderizarResumoChecklist() {
   const resumo = document.querySelector('#resumo-checklist')
-  const linhas = perguntasChecklist.map(([topico], indice) => {
+  const linhas = perguntasEmUso.map(({ categoria: topico }, indice) => {
     const linha = document.createElement('div')
     linha.className = 'list-group-item bg-transparent px-0 d-flex flex-wrap justify-content-between gap-2'
     const rotulo = document.createElement('dt')
@@ -303,6 +320,11 @@ function renderizarResumoChecklist() {
     return linha
   })
   resumo.replaceChildren(...linhas)
+  if (!linhas.length) {
+    const vazio = document.createElement('p')
+    vazio.textContent = 'Nenhuma pergunta habilitada para esta sessão.'
+    resumo.append(vazio)
+  }
 }
 
 // Controles da sessão e estado do cronômetro, das pausas e dos check-ins.
@@ -580,6 +602,7 @@ function registrarSessaoFinalizada() {
     duracao: tempoSessao.textContent,
     completa: tempoAcumulado >= 2 * 60 * 60 * 1000,
     respostas: [...respostasChecklist],
+    checklist: registrarChecklistIndividual(perguntasEmUso, respostasChecklist),
   })
   renderizarHistorico()
 }
@@ -597,11 +620,12 @@ function criarItemHistorico(sessao) {
 
   exibirIndicadoresVisuais(item.querySelector('[data-indicadores-historico]'), sessao.indicadoresVisuais)
   const checklist = item.querySelector('[data-sessao-checklist]')
-  perguntasChecklist.forEach(([topico], indice) => {
+  respostasDaSessao(sessao, perguntasChecklist).forEach(({ categoria: topico, pergunta, resposta: textoResposta }) => {
     const rotulo = document.createElement('dt')
     rotulo.textContent = topico
+    rotulo.title = pergunta
     const resposta = document.createElement('dd')
-    resposta.textContent = sessao.respostas[indice]
+    resposta.textContent = textoResposta ?? 'Não respondida'
     checklist.append(rotulo, resposta)
   })
   return item
@@ -713,6 +737,7 @@ document.querySelector('#sair-profissional').addEventListener('click', () => {
   menuProfissional.close()
   notificacoesProfissional.open = false
   formularioLogin.reset()
+  pacienteChecklistAtual = null
   ultimoPerfil = null
   trocarTela(telaProfissional, telaInicio, botaoComecar)
 })
@@ -759,25 +784,21 @@ function abrirPerfilPaciente(paciente) {
   telaDetalheSessao.hidden = true
   telaRelatorioSemanal.hidden = true
   configuracaoProtocolo.hidden = true
-  if (!paciente.protocolo) {
-    paciente.protocolo = perguntasChecklist.map(([categoria, pergunta, respostas]) => ({
-      categoria, pergunta, respostas: [...respostas], ativa: true, personalizada: false,
-    }))
-  }
+  paciente.protocolo ??= criarProtocoloBase(perguntasChecklist)
   tituloPerfilProfissionalPaciente.textContent = paciente.nome
   document.querySelector('#perfil-sessoes-semana').textContent = paciente.sessoesSemana
   document.querySelector('#perfil-tempo-total').textContent = paciente.tempoTotal
   document.querySelector('#perfil-ultima-sessao').textContent = paciente.ultimaSessao.replace('Última sessão: ', '')
-  const itens = paciente.protocolo.map(({ pergunta }, indice) => {
+  const itens = paciente.protocolo.map(({ categoria, pergunta, ativa }, indice) => {
     const item = document.createElement('li')
     item.className = 'protocolo-bloco p-3 rounded-3'
-    item.textContent = pergunta
+    item.textContent = categoria + (ativa ? ' · Ativa' : ' · Inativa') + ' — ' + pergunta
     item.hidden = indice >= 3
     return item
   })
   perguntasPerfilPaciente.replaceChildren(...itens)
   botaoTodasPerguntas.setAttribute('aria-expanded', 'false')
-  botaoTodasPerguntas.textContent = 'Ver todas as 7 perguntas'
+  botaoTodasPerguntas.textContent = 'Ver todas as ' + pacienteSelecionado.protocolo.length + ' perguntas'
   trocarTela(dashboardProfissional, perfilProfissionalPaciente, tituloPerfilProfissionalPaciente)
 }
 
@@ -787,7 +808,7 @@ botaoTodasPerguntas.addEventListener('click', () => {
     item.hidden = !expandido && indice >= 3
   })
   botaoTodasPerguntas.setAttribute('aria-expanded', String(expandido))
-  botaoTodasPerguntas.textContent = expandido ? 'Mostrar apenas 3 perguntas' : 'Ver todas as 7 perguntas'
+  botaoTodasPerguntas.textContent = expandido ? 'Mostrar apenas 3 perguntas' : 'Ver todas as ' + pacienteSelecionado.protocolo.length + ' perguntas'
 })
 
 document.querySelector('#voltar-dashboard-profissional').addEventListener('click', () => voltarDashboardProfissional())
@@ -810,8 +831,56 @@ function criarCartaoProtocolo(questao) {
   const origem = cartao.querySelector('[data-origem]')
   cartao.querySelector('[data-categoria]').textContent = questao.categoria
   ativa.checked = questao.ativa
+  const indiceQuestao = pacienteSelecionado.protocolo.indexOf(questao)
+  cartao.querySelector('[data-numero-pergunta]').textContent = String(indiceQuestao + 1).padStart(2, '0')
+  cartao.querySelector('[data-numero-pergunta]').setAttribute('aria-label', 'Posição ' + (indiceQuestao + 1))
+  const subir = cartao.querySelector('[data-subir]')
+  const descer = cartao.querySelector('[data-descer]')
+  subir.disabled = indiceQuestao === 0
+  descer.disabled = indiceQuestao === pacienteSelecionado.protocolo.length - 1
+  subir.setAttribute('aria-label', 'Subir pergunta de ' + questao.categoria)
+  descer.setAttribute('aria-label', 'Descer pergunta de ' + questao.categoria)
+  for (const [botao, direcao] of [[subir, -1], [descer, 1]]) {
+    botao.addEventListener('click', () => {
+      if (listaProtocolo.querySelector('form:not([hidden])')) {
+        statusProtocolo.textContent = 'Salve ou cancele a edição antes de reorganizar as perguntas.'
+        return
+      }
+      const vizinho = direcao < 0 ? cartao.previousElementSibling : cartao.nextElementSibling
+      if (!vizinho) return
+
+      // Guarda a posição visual atual, inclusive se outro movimento ainda estiver terminando.
+      const posicoes = new Map(Array.from(listaProtocolo.children, (elemento) => [
+        elemento, elemento.getBoundingClientRect().top,
+      ]))
+      for (const elemento of posicoes.keys()) {
+        for (const animacao of elemento.getAnimations()) animacao.cancel()
+      }
+
+      const novaPosicao = moverPerguntaProtocolo(pacienteSelecionado.protocolo, questao, direcao)
+      // Move os próprios cartões para preservar seus eventos e estados internos.
+      listaProtocolo.insertBefore(cartao, direcao < 0 ? vizinho : vizinho.nextElementSibling)
+      atualizarNumeracaoProtocolo()
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        for (const [elemento, antes] of posicoes) {
+          const deslocamento = antes - elemento.getBoundingClientRect().top
+          if (Math.abs(deslocamento) < 1) continue
+          elemento.animate([
+            { transform: 'translateY(' + deslocamento + 'px)' },
+            { transform: 'translateY(0)' },
+          ], { duration: 350, easing: 'cubic-bezier(.22, 1, .36, 1)' })
+        }
+      }
+      const foco = botao.disabled ? (direcao < 0 ? descer : subir) : botao
+      foco.focus({ preventScroll: true })
+      statusProtocolo.textContent = questao.categoria + ' agora está na posição ' + (novaPosicao + 1) + '.'
+    })
+  }
 
   function atualizarCartao() {
+    cartao.querySelector('[data-categoria]').textContent = questao.categoria
+    subir.setAttribute('aria-label', 'Subir pergunta de ' + questao.categoria)
+    descer.setAttribute('aria-label', 'Descer pergunta de ' + questao.categoria)
     origem.textContent = questao.personalizada ? 'Personalizada' : 'Base'
     cartao.querySelector('[data-status-ativa]').textContent = questao.ativa ? 'Ativa' : 'Inativa'
     cartao.querySelector('[data-pergunta]').textContent = questao.pergunta
@@ -831,6 +900,8 @@ function criarCartaoProtocolo(questao) {
   })
 
   editar.addEventListener('click', () => {
+    formulario.elements.categoria.value = questao.categoria
+    formulario.elements.categoria.setCustomValidity('')
     formulario.elements.pergunta.value = questao.pergunta
     questao.respostas.forEach((resposta, indice) => {
       const campo = formulario.elements.namedItem('resposta' + (indice + 1))
@@ -851,10 +922,12 @@ function criarCartaoProtocolo(questao) {
       campo.setCustomValidity(campo.value.trim() ? '' : 'Preencha este campo.')
     }
     if (!formulario.reportValidity()) return
+    questao.categoria = formulario.elements.categoria.value.trim()
     questao.pergunta = formulario.elements.pergunta.value.trim()
     questao.respostas = [1, 2, 3].map((indice) => formulario.elements.namedItem('resposta' + indice).value.trim())
-    const base = perguntasChecklist.find(([categoria]) => categoria === questao.categoria)
-    questao.personalizada = questao.pergunta !== base[1] ||
+    // A identidade da pergunta permanece estável mesmo quando sua categoria muda.
+    const base = perguntasChecklist.find((_, indice) => questao.id === 'base-' + indice)
+    questao.personalizada = !base || questao.categoria !== base[0] || questao.pergunta !== base[1] ||
       questao.respostas.some((resposta, indice) => resposta !== base[2][indice])
     atualizarCartao()
     trocarTela(formulario, leitura, editar)
@@ -876,13 +949,7 @@ document.querySelector('#voltar-perfil-protocolo').addEventListener('click', () 
 
 // Recupera o protocolo original apenas para o paciente selecionado.
 document.querySelector('#restaurar-protocolo').addEventListener('click', () => {
-  pacienteSelecionado.protocolo = perguntasChecklist.map(([categoria, pergunta, respostas]) => ({
-    categoria,
-    pergunta,
-    respostas: [...respostas],
-    ativa: true,
-    personalizada: false,
-  }))
+  pacienteSelecionado.protocolo = criarProtocoloBase(perguntasChecklist)
   listaProtocolo.replaceChildren(...pacienteSelecionado.protocolo.map(criarCartaoProtocolo))
   statusProtocolo.textContent = 'As sete perguntas foram restauradas ao padrão e reativadas.'
 })
@@ -1124,11 +1191,12 @@ function abrirDetalheSessaoProfissional(sessao, botao) {
   exibirIndicadoresVisuais(document.querySelector('#indicadores-profissional'), sessao.indicadoresVisuais)
   const respostas = document.querySelector('#profissional-sessao-respostas')
   respostas.replaceChildren()
-  perguntasChecklist.forEach(([categoria], indice) => {
+  respostasDaSessao(sessao, perguntasChecklist).forEach(({ categoria, pergunta, resposta }) => {
     const rotulo = document.createElement('dt')
     rotulo.textContent = categoria
+    rotulo.title = pergunta
     const valor = document.createElement('dd')
-    valor.textContent = sessao.respostas[indice] ?? 'Não respondida'
+    valor.textContent = resposta ?? 'Não respondida'
     respostas.append(rotulo, valor)
   })
   trocarTela(telaSessoesDia, telaDetalheSessao, tituloDetalheSessao)
@@ -2014,12 +2082,13 @@ function renderizarComparacaoRelatorio(sessoes) {
     cartao.querySelector('[data-comparacao-checkins]').textContent = quantidadeCheckins(sessao)
 
     const respostas = cartao.querySelector('[data-comparacao-respostas]')
-    perguntasChecklist.forEach(([categoria], indice) => {
+    respostasDaSessao(sessao, perguntasChecklist).forEach(({ categoria, pergunta, resposta }) => {
       const grupo = document.createElement('div')
       const rotulo = document.createElement('dt')
       rotulo.textContent = categoria
+    rotulo.title = pergunta
       const valor = document.createElement('dd')
-      valor.textContent = sessao.respostas?.[indice] ?? 'Não respondida'
+      valor.textContent = resposta ?? 'Não respondida'
       grupo.append(rotulo, valor)
       respostas.append(grupo)
     })
@@ -2036,4 +2105,16 @@ function renderizarComparacaoRelatorio(sessoes) {
 }
 for (const campo of [tipoRelatorio, diaRelatorio, mesRelatorio]) {
   campo.addEventListener('change', renderizarRelatorioPorPeriodo)
+}
+
+// Atualiza as posições visuais e os limites dos controles depois de mover os cartões.
+function atualizarNumeracaoProtocolo() {
+  const cartoes = Array.from(listaProtocolo.children)
+  cartoes.forEach((cartao, indice) => {
+    const numero = cartao.querySelector('[data-numero-pergunta]')
+    numero.textContent = String(indice + 1).padStart(2, '0')
+    numero.setAttribute('aria-label', 'Posição ' + (indice + 1))
+    cartao.querySelector('[data-subir]').disabled = indice === 0
+    cartao.querySelector('[data-descer]').disabled = indice === cartoes.length - 1
+  })
 }
