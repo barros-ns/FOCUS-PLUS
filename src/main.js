@@ -1,5 +1,9 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './style.css'
+import { iniciarAbertura } from './abertura.js'
+
+// Abertura visual executada a cada carregamento da Home.
+iniciarAbertura()
 
 // Referências às telas iniciais e aos formulários compartilhados de acesso.
 const botaoComecar = document.querySelector('#btn-comecar')
