@@ -679,6 +679,11 @@ function renderizarDashboardProfissional() {
     item.querySelector('[data-paciente-tempo]').textContent = paciente.tempoTotal
     return item
   })
+  if (!itens.length) {
+    const vazio = document.createElement('p')
+    vazio.textContent = 'Nenhum paciente ativo vinculado.'
+    itens.push(vazio)
+  }
   document.querySelector('#profissional-lista-pacientes').replaceChildren(...itens)
   renderizarSolicitacoesPacientes()
 }
@@ -1701,6 +1706,7 @@ function limparConvitePaciente() {
 }
 
 document.querySelector('#adicionar-paciente').addEventListener('click', () => {
+  menuGerenciarPacientes.open = false
   limparConvitePaciente()
   dialogAdicionarPaciente.showModal()
   nomeAdicionarPaciente.focus()
@@ -1841,3 +1847,78 @@ document.querySelector('#confirmar-privacidade').addEventListener('click', () =>
   dialogPrivacidade.close()
 })
 atualizarPrivacidadeConta()
+
+
+// Gerenciamento dos vínculos em memória; a futura API aplicará a autorização.
+const menuGerenciarPacientes = document.querySelector('#gerenciar-pacientes')
+const dialogRemoverPaciente = document.querySelector('#dialog-remover-paciente')
+const formularioRemoverPaciente = document.querySelector('#form-remover-paciente')
+const selecionarRemoverPaciente = document.querySelector('#selecionar-remover-paciente')
+const confirmarRemoverPaciente = document.querySelector('#confirmar-remover-paciente')
+const efetivarRemoverPaciente = document.querySelector('#efetivar-remover-paciente')
+const descricaoRemoverPaciente = document.querySelector('#descricao-remover-paciente')
+let pacientesParaRemocao = []
+let pacienteParaRemover = null
+
+function atualizarConfirmacaoRemocao() {
+  const selecionado = selecionarRemoverPaciente.value
+  pacienteParaRemover = selecionado === '' ? null : pacientesParaRemocao[Number(selecionado)]
+  confirmarRemoverPaciente.checked = false
+  confirmarRemoverPaciente.disabled = !pacienteParaRemover
+  efetivarRemoverPaciente.disabled = !pacienteParaRemover
+  descricaoRemoverPaciente.textContent = pacienteParaRemover
+    ? (pacienteParaRemover.ativo
+      ? 'O vínculo com ' + pacienteParaRemover.nome + ' será removido nesta demonstração.'
+      : 'A solicitação pendente de ' + pacienteParaRemover.nome + ' será removida nesta demonstração.')
+    : 'Selecione um paciente para continuar.'
+}
+
+document.querySelector('#abrir-remover-paciente').addEventListener('click', () => {
+  menuGerenciarPacientes.open = false
+  formularioRemoverPaciente.reset()
+  pacientesParaRemocao = [...pacientesProfissional]
+  const vazio = document.createElement('option')
+  vazio.value = ''
+  vazio.textContent = pacientesParaRemocao.length ? 'Selecione um paciente' : 'Nenhum paciente disponível'
+  const opcoes = pacientesParaRemocao.map((paciente, indice) => {
+    const opcao = document.createElement('option')
+    opcao.value = indice
+    opcao.textContent = paciente.nome + (paciente.email ? ' · ' + paciente.email : '') +
+      (paciente.ativo ? ' · Ativo' : ' · Pendente')
+    return opcao
+  })
+  selecionarRemoverPaciente.replaceChildren(vazio, ...opcoes)
+  selecionarRemoverPaciente.disabled = !pacientesParaRemocao.length
+  atualizarConfirmacaoRemocao()
+  dialogRemoverPaciente.showModal()
+  if (pacientesParaRemocao.length) selecionarRemoverPaciente.focus()
+  else document.querySelector('#cancelar-remover-paciente').focus()
+})
+selecionarRemoverPaciente.addEventListener('change', atualizarConfirmacaoRemocao)
+document.querySelector('#cancelar-remover-paciente').addEventListener('click', () => dialogRemoverPaciente.close())
+dialogRemoverPaciente.addEventListener('close', () => {
+  pacienteParaRemover = null
+  pacientesParaRemocao = []
+  formularioRemoverPaciente.reset()
+})
+formularioRemoverPaciente.addEventListener('submit', (evento) => {
+  evento.preventDefault()
+  if (!pacienteParaRemover || !formularioRemoverPaciente.reportValidity()) return
+  const indice = pacientesProfissional.indexOf(pacienteParaRemover)
+  if (indice < 0) return
+  const nome = pacienteParaRemover.nome
+  pacientesProfissional.splice(indice, 1)
+  if (pacienteSelecionado === pacienteParaRemover) pacienteSelecionado = null
+  renderizarDashboardProfissional()
+  dialogRemoverPaciente.close()
+  document.querySelector('#status-gerenciar-pacientes').textContent =
+    nome + ' foi removido da lista nesta demonstração.'
+})
+document.addEventListener('click', (evento) => {
+  if (!menuGerenciarPacientes.contains(evento.target)) menuGerenciarPacientes.open = false
+})
+menuGerenciarPacientes.addEventListener('keydown', (evento) => {
+  if (evento.key !== 'Escape' || !menuGerenciarPacientes.open) return
+  menuGerenciarPacientes.open = false
+  menuGerenciarPacientes.querySelector('summary').focus()
+})

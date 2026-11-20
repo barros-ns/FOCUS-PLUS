@@ -739,9 +739,16 @@
         <div id="dashboard-profissional">
         <header class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
           <h1 id="titulo-dashboard-profissional" class="h2 mb-0" tabindex="-1">Dashboard</h1>
-          <button id="adicionar-paciente" class="btn login-entrar rounded-pill px-4" type="button">Adicionar paciente</button>
+          <details id="gerenciar-pacientes" class="gerenciar-pacientes">
+            <summary class="btn login-entrar rounded-pill px-4">Gerenciar pacientes <span aria-hidden="true">⌄</span></summary>
+            <div class="gerenciar-pacientes-opcoes">
+              <button id="adicionar-paciente" class="dropdown-item" type="button">Adicionar paciente</button>
+              <button id="abrir-remover-paciente" class="dropdown-item text-danger" type="button">Remover paciente</button>
+            </div>
+          </details>
         </header>
 
+        <p id="status-gerenciar-pacientes" class="small" role="status"></p>
         <div class="row g-3 mb-4">
           <div class="col-12 col-md-3">
             <article class="paciente-card h-100">
@@ -1197,6 +1204,25 @@
         <button id="cancelar-privacidade" class="btn btn-outline-secondary rounded-pill" type="button" autofocus>Cancelar</button>
         <button id="confirmar-privacidade" class="btn login-entrar rounded-pill" type="button">Confirmar</button>
       </div>
+    </dialog>
+
+    <!-- Remoção do vínculo entre profissional e paciente na demonstração -->
+    <dialog id="dialog-remover-paciente" class="nova-senha-dialog" aria-labelledby="titulo-remover-paciente">
+      <h1 id="titulo-remover-paciente" class="h3">Remover paciente</h1>
+      <p>Escolha o paciente ou a solicitação pendente que deseja remover da sua lista.</p>
+      <form id="form-remover-paciente">
+        <label for="selecionar-remover-paciente" class="form-label">Paciente</label>
+        <select id="selecionar-remover-paciente" class="form-select mb-3" required></select>
+        <p id="descricao-remover-paciente" class="small" role="status"></p>
+        <label class="form-check mb-4">
+          <input id="confirmar-remover-paciente" class="form-check-input" type="checkbox" required>
+          <span class="form-check-label">Confirmo a remoção deste vínculo ou solicitação.</span>
+        </label>
+        <div class="d-flex flex-wrap justify-content-end gap-2">
+          <button id="cancelar-remover-paciente" class="btn btn-outline-secondary rounded-pill" type="button">Cancelar</button>
+          <button id="efetivar-remover-paciente" class="btn btn-danger rounded-pill" type="submit" disabled>Remover paciente</button>
+        </div>
+      </form>
     </dialog>
 
     <!-- Nova senha: formulário compartilhado pela recuperação e pelas contas -->
