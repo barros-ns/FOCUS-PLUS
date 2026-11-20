@@ -19,54 +19,130 @@ main {
   max-width: 52rem;
 }
 
-/* Home: tipografia, cores e botão de entrada. */
+/* Home: proporções e espaçamento aproximados da referência visual. */
 #tela-inicio {
-  --verde-inicio: #45685a;
-  --dourado-inicio: #806330;
-  max-width: 36rem;
-  color: #39483e;
+  --verde-inicio: #527a70;
+  --dourado-inicio: #a78a45;
+  max-width: 40rem;
+  color: #435952;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 #tela-inicio h1 {
-  font-family: Georgia, 'Times New Roman', Times, serif;
+  margin: 1rem 0 2.5rem;
+  font: 400 clamp(2.8rem, 8vw, 3.6rem)/1.08 Georgia, 'Times New Roman', serif;
+  letter-spacing: -.045em;
 }
 
-#tela-inicio > img {
-  background-image: linear-gradient(135deg, #a9bcaa, #cbb27d);
+.inicio-lema {
+  margin: 0;
+  color: #48483f;
+  font: italic 400 clamp(1rem, 3.5vw, 1.3rem)/1.5 Georgia, 'Times New Roman', serif;
+}
+
+.inicio-lema::after {
+  content: '';
+  display: block;
+  width: 5.5rem;
+  height: 1px;
+  margin: 1.25rem auto 1.7rem;
+  background: linear-gradient(90deg, transparent, #628980, transparent);
+}
+
+.inicio-descricao {
+  margin: 0;
+  color: #736f63;
+  font-size: .875rem;
+  line-height: 1.65;
 }
 
 #btn-comecar {
-  --bs-btn-border-color: transparent;
-  --bs-btn-hover-border-color: transparent;
-  --bs-btn-active-border-color: transparent;
-  background-image: linear-gradient(110deg, var(--verde-inicio), var(--dourado-inicio));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-width: 9.4rem;
+  min-height: 2.8rem;
+  margin: 3rem auto 3.6rem;
+  padding: .65rem 1.5rem;
+  border: 0;
+  color: #fff;
+  font-size: .875rem;
+  font-weight: 600;
+  background: linear-gradient(110deg, var(--verde-inicio), var(--dourado-inicio));
+  box-shadow: 0 .65rem 1.5rem rgb(69 104 90 / 15%);
 }
 
 #btn-comecar:hover {
-  background-image: linear-gradient(110deg, #38594d, #6b5125);
+  color: #fff;
+  background: linear-gradient(110deg, #42685e, #8c7135);
 }
 
 #btn-comecar:focus-visible {
-  outline: 3px solid var(--verde-inicio);
-  outline-offset: 3px;
+  outline: 3px solid #45685a;
+  outline-offset: 4px;
 }
 
-.destaque {
-  width: 9rem;
+.inicio-seta {
+  font-size: 1.3rem;
+  line-height: 1;
+  font-weight: 400;
 }
 
-.destaque img {
-  --bs-light-rgb: 222, 231, 220;
-  width: 64px;
-  height: 64px;
-  padding: 16px;
-  margin-bottom: .5rem;
+.inicio-destaques {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(.5rem, 3vw, 2rem);
+  max-width: 32rem;
+  margin-inline: auto;
 }
 
-.destaque:nth-of-type(2) img {
-  --bs-light-rgb: 235, 223, 198;
+#tela-inicio .destaque {
+  margin: 0;
+  min-width: 0;
 }
 
+.inicio-icone {
+  display: inline-grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-bottom: .75rem;
+  border-radius: 50%;
+  background: #e4e5dc;
+}
+
+.inicio-icone img {
+  width: 1.3rem;
+  height: 1.3rem;
+  filter: invert(44%) sepia(20%) saturate(640%) hue-rotate(115deg) brightness(91%);
+}
+
+.destaque:nth-child(2) .inicio-icone {
+  background: #ece3d2;
+}
+
+.destaque:nth-child(2) img {
+  filter: invert(56%) sepia(61%) saturate(481%) hue-rotate(3deg) brightness(94%);
+}
+
+#tela-inicio figcaption {
+  color: #625e52;
+  font-size: .65rem;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 575.98px) {
+  #btn-comecar {
+    margin-top: 2.25rem;
+    margin-bottom: 2.75rem;
+  }
+
+  #tela-inicio h1 {
+    margin-bottom: 1.8rem;
+  }
+}
 /* Componentes comuns à seleção de perfil e ao primeiro acesso. */
 .perfil {
   max-width: 42rem;
@@ -604,4 +680,156 @@ body:has(:is(#tela-acesso-paciente, #tela-profissional)[data-bs-theme="dark"]:no
 
 .checkin-dialog::backdrop {
   background: rgb(20 30 24 / 25%);
+}
+
+/* Abertura: mesmo desenho no centro da janela e na posição final da Home. */
+.marca-olho-inicio {
+  display: inline-flex;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(110deg, var(--verde-inicio, #527a70), var(--dourado-inicio, #a78a45));
+  color: #fff;
+  vertical-align: middle;
+}
+
+.marca-olho-inicio svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.olho-desenho {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+}
+
+.marca-em-abertura {
+  visibility: hidden;
+}
+
+.abertura-camada {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+}
+
+.abertura-fundo {
+  position: absolute;
+  inset: 0;
+  background: #efe9de;
+}
+
+.abertura-olho {
+  position: absolute;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.abertura-pular {
+  position: absolute;
+  right: max(1.5rem, env(safe-area-inset-right));
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  padding: .6rem 1rem;
+  border: 1px solid #617265;
+  border-radius: 2rem;
+  background: #fbf7ee;
+  color: #31463d;
+}
+
+.abertura-pular:focus-visible {
+  outline: 3px solid #45685a;
+  outline-offset: 3px;
+}
+
+/* O mesmo olho é usado na Home e na seleção de perfil. */
+.marca-olho-perfil {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+/* Duas piscadas ao final de cada ciclo de cinco segundos. */
+.olho-recorrente .olho-desenho {
+  animation: piscadas-do-logo 5s ease-in-out infinite;
+}
+
+@keyframes piscadas-do-logo {
+  0%, 80%, 89%, 98%, 100% {
+    transform: scaleY(1);
+  }
+  84%, 93% {
+    transform: scaleY(.035);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .olho-recorrente .olho-desenho {
+    animation: none;
+  }
+}
+
+/* Abertura dos diálogos: reaplicada pelo navegador em cada showModal(). */
+dialog[open] {
+  animation: abrir-modal 280ms cubic-bezier(.22, 1, .36, 1);
+}
+
+dialog[open]::backdrop {
+  animation: revelar-fundo-modal 240ms ease-out;
+}
+
+/* Os menus mantêm seu posicionamento fixo na lateral esquerda. */
+.paciente-menu[open] {
+  animation: abrir-menu-lateral 320ms cubic-bezier(.22, 1, .36, 1);
+}
+
+:is(#notificacoes-paciente, #notificacoes-profissional)[open] .paciente-notificacoes {
+  animation: abrir-notificacoes 220ms cubic-bezier(.22, 1, .36, 1);
+  transform-origin: top right;
+}
+
+@keyframes abrir-modal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes abrir-menu-lateral {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes abrir-notificacoes {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes revelar-fundo-modal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog[open],
+  .paciente-menu[open],
+  dialog[open]::backdrop,
+  :is(#notificacoes-paciente, #notificacoes-profissional)[open] .paciente-notificacoes {
+    animation: none;
+  }
 }
