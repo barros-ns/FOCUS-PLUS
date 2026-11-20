@@ -708,7 +708,10 @@
           </div>
         </dialog>
         <div id="dashboard-profissional">
-        <h1 id="titulo-dashboard-profissional" class="h2 mb-4" tabindex="-1">Dashboard</h1>
+        <header class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+          <h1 id="titulo-dashboard-profissional" class="h2 mb-0" tabindex="-1">Dashboard</h1>
+          <button id="adicionar-paciente" class="btn login-entrar rounded-pill px-4" type="button">Adicionar paciente</button>
+        </header>
 
         <div class="row g-3 mb-4">
           <div class="col-12 col-md-3">
@@ -733,6 +736,10 @@
 
         <h2 id="titulo-lista-pacientes-profissional" class="h4 mb-3" tabindex="-1">Meus pacientes</h2>
         <div id="profissional-lista-pacientes" class="d-grid gap-3"></div>
+        <section id="solicitacoes-pacientes" class="mt-4" aria-labelledby="titulo-solicitacoes-pacientes" hidden>
+          <h2 id="titulo-solicitacoes-pacientes" class="h4">Solicitações pendentes</h2>
+          <div id="lista-solicitacoes-pacientes" class="d-grid gap-2"></div>
+        </section>
         <template id="profissional-item-paciente">
           <button class="paciente-card profissional-paciente-botao w-100 d-flex flex-wrap justify-content-between align-items-center gap-3 text-start" type="button" data-abrir-paciente>
             <span>
@@ -1124,6 +1131,33 @@
         <button class="btn checklist-resposta" type="button" data-atencao="Alta">Alta</button>
       </div>
       <button id="fechar-checkin" class="btn paciente-controle d-block mx-auto mt-3" type="button">Agora não</button>
+    </dialog>
+
+    <!-- Convite de paciente: geração local de credenciais na demonstração -->
+    <dialog id="dialog-adicionar-paciente" class="nova-senha-dialog" aria-labelledby="titulo-adicionar-paciente">
+      <div class="d-flex justify-content-end">
+        <button id="fechar-adicionar-paciente" class="btn login-link" type="button" aria-label="Fechar">×</button>
+      </div>
+      <h1 id="titulo-adicionar-paciente" class="h3">Adicionar paciente</h1>
+      <form id="form-adicionar-paciente">
+        <label class="form-label d-block">Nome completo
+          <input id="nome-adicionar-paciente" name="nome" class="form-control mt-1" autocomplete="name" required>
+        </label>
+        <label class="form-label d-block mb-4">E-mail
+          <input id="email-adicionar-paciente" name="email" class="form-control mt-1" type="email" autocomplete="email" required>
+        </label>
+        <button class="btn login-entrar rounded-pill w-100" type="submit">Gerar senha de entrada</button>
+      </form>
+      <section id="resultado-adicionar-paciente" aria-labelledby="titulo-resultado-paciente" hidden>
+        <h2 id="titulo-resultado-paciente" class="h5" tabindex="-1">Solicitação preparada</h2>
+        <p id="resumo-adicionar-paciente" class="relatorio-anotacao"></p>
+        <label for="senha-entrada-paciente" class="form-label">Senha temporária de entrada</label>
+        <input id="senha-entrada-paciente" class="form-control mb-2" type="text" readonly autocomplete="off" spellcheck="false">
+        <button id="copiar-senha-paciente" class="btn btn-outline-secondary rounded-pill mb-3" type="button">Copiar senha</button>
+        <p class="small">Esta é uma demonstração. A criação da conta e o envio do acesso por e-mail serão integrados à autenticação.</p>
+        <button id="concluir-adicionar-paciente" class="btn login-entrar rounded-pill w-100" type="button">Concluir</button>
+      </section>
+      <p id="status-adicionar-paciente" class="small mt-3 mb-0" role="status"></p>
     </dialog>
 
     <!-- Nova senha: formulário compartilhado pela recuperação e pelas contas -->

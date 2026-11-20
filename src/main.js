@@ -613,6 +613,7 @@ function formatarPeriodoSessao(inicio, fim) {
 const pacientesProfissional = [
   {
     nome: 'Maria',
+    email: 'maria@example.com',
     ativo: true,
     ultimaSessao: 'Última sessão: segunda-feira, 09:30',
     tempoTotal: '2h30min',
@@ -645,6 +646,7 @@ function renderizarDashboardProfissional() {
     return item
   })
   document.querySelector('#profissional-lista-pacientes').replaceChildren(...itens)
+  renderizarSolicitacoesPacientes()
 }
 
 document.querySelector('#abrir-menu-profissional').addEventListener('click', () => {
@@ -1605,3 +1607,102 @@ for (const botao of dialogCheckin.querySelectorAll('[data-atencao]')) {
 }
 
 document.querySelector('#fechar-checkin').addEventListener('click', () => dialogCheckin.close())
+
+
+// Credenciais temporárias são exibidas apenas no modal; o backend criará a conta.
+const dialogAdicionarPaciente = document.querySelector('#dialog-adicionar-paciente')
+const formularioAdicionarPaciente = document.querySelector('#form-adicionar-paciente')
+const nomeAdicionarPaciente = document.querySelector('#nome-adicionar-paciente')
+const emailAdicionarPaciente = document.querySelector('#email-adicionar-paciente')
+const resultadoAdicionarPaciente = document.querySelector('#resultado-adicionar-paciente')
+const senhaEntradaPaciente = document.querySelector('#senha-entrada-paciente')
+const statusAdicionarPaciente = document.querySelector('#status-adicionar-paciente')
+
+function gerarSenhaEntrada() {
+  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+  const bytes = crypto.getRandomValues(new Uint8Array(18))
+  return Array.from(bytes, (valor) => caracteres[valor & 63]).join('')
+}
+
+function renderizarSolicitacoesPacientes() {
+  const pendentes = pacientesProfissional.filter((paciente) => !paciente.ativo)
+  document.querySelector('#solicitacoes-pacientes').hidden = pendentes.length === 0
+  const itens = pendentes.map((paciente) => {
+    const bloco = document.createElement('div')
+    bloco.className = 'paciente-card'
+    const nome = document.createElement('p')
+    nome.className = 'fw-bold mb-1'
+    nome.textContent = paciente.nome
+    const email = document.createElement('p')
+    email.className = 'mb-1 text-break'
+    email.textContent = paciente.email
+    const status = document.createElement('span')
+    status.className = 'small'
+    status.textContent = 'Aguardando ativação pelo paciente'
+    bloco.append(nome, email, status)
+    return bloco
+  })
+  document.querySelector('#lista-solicitacoes-pacientes').replaceChildren(...itens)
+}
+
+function limparConvitePaciente() {
+  formularioAdicionarPaciente.reset()
+  nomeAdicionarPaciente.setCustomValidity('')
+  emailAdicionarPaciente.setCustomValidity('')
+  senhaEntradaPaciente.value = ''
+  document.querySelector('#resumo-adicionar-paciente').textContent = ''
+  formularioAdicionarPaciente.hidden = false
+  resultadoAdicionarPaciente.hidden = true
+  statusAdicionarPaciente.textContent = ''
+}
+
+document.querySelector('#adicionar-paciente').addEventListener('click', () => {
+  limparConvitePaciente()
+  dialogAdicionarPaciente.showModal()
+  nomeAdicionarPaciente.focus()
+})
+for (const id of ['fechar-adicionar-paciente', 'concluir-adicionar-paciente']) {
+  document.getElementById(id).addEventListener('click', () => dialogAdicionarPaciente.close())
+}
+dialogAdicionarPaciente.addEventListener('close', limparConvitePaciente)
+formularioAdicionarPaciente.addEventListener('input', () => {
+  nomeAdicionarPaciente.setCustomValidity('')
+  emailAdicionarPaciente.setCustomValidity('')
+})
+formularioAdicionarPaciente.addEventListener('submit', (evento) => {
+  evento.preventDefault()
+  const nome = nomeAdicionarPaciente.value.trim()
+  const email = emailAdicionarPaciente.value.trim().toLowerCase()
+  nomeAdicionarPaciente.setCustomValidity(nome ? '' : 'Informe o nome do paciente.')
+  const existente = pacientesProfissional.some((paciente) => paciente.email?.toLowerCase() === email)
+  emailAdicionarPaciente.setCustomValidity(existente ? 'Este e-mail já está cadastrado ou possui uma solicitação pendente.' : '')
+  if (!formularioAdicionarPaciente.reportValidity()) return
+
+  let senha
+  try {
+    senha = gerarSenhaEntrada()
+  } catch {
+    statusAdicionarPaciente.textContent = 'Não foi possível gerar a senha. Tente novamente.'
+    return
+  }
+  pacientesProfissional.push({
+    nome, email, ativo: false,
+    ultimaSessao: 'Nenhuma sessão registrada',
+    tempoTotal: '0h00min',
+    sessoesSemana: 0,
+  })
+  senhaEntradaPaciente.value = senha
+  document.querySelector('#resumo-adicionar-paciente').textContent = nome + ' — ' + email
+  renderizarDashboardProfissional()
+  trocarTela(formularioAdicionarPaciente, resultadoAdicionarPaciente, document.querySelector('#titulo-resultado-paciente'))
+})
+
+document.querySelector('#copiar-senha-paciente').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(senhaEntradaPaciente.value)
+    statusAdicionarPaciente.textContent = 'Senha copiada.'
+  } catch {
+    senhaEntradaPaciente.select()
+    statusAdicionarPaciente.textContent = 'Selecione a senha e use Ctrl+C para copiar.'
+  }
+})
