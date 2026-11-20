@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './style.css'
+import './transicoes.js'
 import { iniciarAbertura } from './abertura.js'
 
 // Abertura visual executada a cada carregamento da Home.

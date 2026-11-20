@@ -767,3 +767,69 @@ body:has(:is(#tela-acesso-paciente, #tela-profissional)[data-bs-theme="dark"]:no
     animation: none;
   }
 }
+
+/* Abertura dos diálogos: reaplicada pelo navegador em cada showModal(). */
+dialog[open] {
+  animation: abrir-modal 280ms cubic-bezier(.22, 1, .36, 1);
+}
+
+dialog[open]::backdrop {
+  animation: revelar-fundo-modal 240ms ease-out;
+}
+
+/* Os menus mantêm seu posicionamento fixo na lateral esquerda. */
+.paciente-menu[open] {
+  animation: abrir-menu-lateral 320ms cubic-bezier(.22, 1, .36, 1);
+}
+
+:is(#notificacoes-paciente, #notificacoes-profissional)[open] .paciente-notificacoes {
+  animation: abrir-notificacoes 220ms cubic-bezier(.22, 1, .36, 1);
+  transform-origin: top right;
+}
+
+@keyframes abrir-modal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes abrir-menu-lateral {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes abrir-notificacoes {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes revelar-fundo-modal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog[open],
+  .paciente-menu[open],
+  dialog[open]::backdrop,
+  :is(#notificacoes-paciente, #notificacoes-profissional)[open] .paciente-notificacoes {
+    animation: none;
+  }
+}
