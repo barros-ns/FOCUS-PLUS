@@ -175,11 +175,7 @@ document.querySelector('#sair-paciente').addEventListener('click', () => {
   trocarTela(telaAcessoPaciente, telaInicio, botaoComecar)
 })
 
-botaoTema.addEventListener('click', () => {
-  const modoEscuro = telaAcessoPaciente.dataset.bsTheme !== 'dark'
-  telaAcessoPaciente.dataset.bsTheme = modoEscuro ? 'dark' : 'light'
-  botaoTema.setAttribute('aria-pressed', String(modoEscuro))
-})
+botaoTema.addEventListener('click', () => alternarTemaConfiguracoes('paciente'))
 
 document.addEventListener('click', (evento) => {
   if (!notificacoesPaciente.contains(evento.target)) notificacoesPaciente.open = false
@@ -305,10 +301,16 @@ let intervaloSessao = null
 let quantidadePausas = 0
 let inicioSessao = null
 let fimSessao = null
+// Teste: 10 segundos. Para uma hora, use 60 * 60 * 1000.
+const INTERVALO_CHECKIN_MS = 10 * 1000
+let proximoCheckin = INTERVALO_CHECKIN_MS
+const checkinsSessao = []
 
 function atualizarCronometro() {
   const tempoEmCurso = inicioCronometro === null ? 0 : performance.now() - inicioCronometro
-  const segundos = Math.floor((tempoAcumulado + tempoEmCurso) / 1000)
+  const tempoAtivo = tempoAcumulado + tempoEmCurso
+  verificarCheckin(tempoAtivo)
+  const segundos = Math.floor(tempoAtivo / 1000)
   tempoSessao.textContent = [
     Math.floor(segundos / 3600),
     Math.floor(segundos / 60) % 60,
@@ -317,6 +319,7 @@ function atualizarCronometro() {
 }
 
 function pararCronometro() {
+  if (dialogCheckin.open) dialogCheckin.close()
   if (inicioCronometro === null) return
   tempoAcumulado += performance.now() - inicioCronometro
   inicioCronometro = null
@@ -336,6 +339,8 @@ document.querySelector('#preparar-sessao').addEventListener('click', () => {
   numeroSessao += 1
   tempoAcumulado = 0
   quantidadePausas = 0
+  checkinsSessao.length = 0
+  proximoCheckin = INTERVALO_CHECKIN_MS
   inicioSessao = null
   fimSessao = null
   atualizarCronometro()
@@ -370,6 +375,7 @@ botaoFinalizarSessao.addEventListener('click', () => {
   duracaoSessaoFinalizada.textContent = tempoSessao.textContent
   document.querySelector('#pausas-sessao-finalizada').textContent = quantidadePausas
   document.querySelector('#horario-sessao-finalizada').textContent = formatarPeriodoSessao(inicioSessao, fimSessao)
+  document.querySelector('#checkins-sessao-finalizada').textContent = checkinsSessao.length + ' registrados'
   registrarSessaoFinalizada()
   trocarTela(telaSessao, telaSessaoFinalizada, tituloSessaoFinalizada)
 })
@@ -377,6 +383,7 @@ botaoFinalizarSessao.addEventListener('click', () => {
 botaoVoltarSessao.addEventListener('click', () => mostrarInicioPaciente())
 
 const telasMenuPaciente = {
+  'titulo-configuracoes-paciente': document.querySelector('#configuracoes-paciente'),
   'titulo-meu-historico': document.querySelector('#historico-paciente'),
   'titulo-conta-paciente': document.querySelector('#conta-paciente'),
   'titulo-tratamento-paciente': document.querySelector('#tratamento-paciente'),
@@ -530,6 +537,7 @@ function registrarSessaoFinalizada() {
     inicio: inicioSessao.toISOString(),
     fim: fimSessao.toISOString(),
     pausas: quantidadePausas,
+    checkins: checkinsSessao.map((checkin) => ({ ...checkin })),
     duracao: tempoSessao.textContent,
     completa: tempoAcumulado >= 2 * 60 * 60 * 1000,
     respostas: [...respostasChecklist],
@@ -545,6 +553,7 @@ function criarItemHistorico(sessao) {
   item.querySelector('[data-sessao-duracao]').textContent = sessao.duracao
   item.querySelector('[data-sessao-numero]').textContent = sessao.numero
   item.querySelector('[data-sessao-pausas]').textContent = sessao.pausas
+  item.querySelector('[data-sessao-checkins]').textContent = (sessao.checkins?.length ?? 0) + ' registrados'
   item.querySelector('[data-sessao-horario]').textContent = formatarPeriodoSessao(new Date(sessao.inicio), new Date(sessao.fim))
 
   const checklist = item.querySelector('[data-sessao-checklist]')
@@ -625,7 +634,9 @@ function renderizarDashboardProfissional() {
     pacientesProfissional.filter((paciente) => !paciente.ativo).length
 
   const modelo = document.querySelector('#profissional-item-paciente')
-  const itens = pacientesProfissional.filter((paciente) => paciente.ativo).map((paciente) => {
+  const pacientesOrdenados = pacientesProfissional.filter((paciente) => paciente.ativo)
+  if (preferenciasProfissional.ordem === 'nome') pacientesOrdenados.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+  const itens = pacientesOrdenados.map((paciente) => {
     const item = modelo.content.cloneNode(true)
     item.querySelector('[data-abrir-paciente]').addEventListener('click', () => abrirPerfilPaciente(paciente))
     item.querySelector('[data-paciente-nome]').textContent = paciente.nome
@@ -649,17 +660,14 @@ document.querySelector('#inicio-profissional').addEventListener('click', () => {
   voltarDashboardProfissional()
 })
 document.querySelector('#sair-profissional').addEventListener('click', () => {
+  reiniciarContaProfissional()
   menuProfissional.close()
   notificacoesProfissional.open = false
   formularioLogin.reset()
   ultimoPerfil = null
   trocarTela(telaProfissional, telaInicio, botaoComecar)
 })
-temaProfissional.addEventListener('click', () => {
-  const escuro = telaProfissional.dataset.bsTheme !== 'dark'
-  telaProfissional.dataset.bsTheme = escuro ? 'dark' : 'light'
-  temaProfissional.setAttribute('aria-pressed', String(escuro))
-})
+temaProfissional.addEventListener('click', () => alternarTemaConfiguracoes('profissional'))
 document.addEventListener('click', (evento) => {
   if (!notificacoesProfissional.contains(evento.target)) notificacoesProfissional.open = false
 })
@@ -676,6 +684,11 @@ const perguntasPerfilPaciente = document.querySelector('#perfil-checklist')
 const botaoTodasPerguntas = document.querySelector('#perfil-todas-perguntas')
 
 function voltarDashboardProfissional(focar = true) {
+  fecharEdicaoProfissional()
+  document.querySelector('#configuracoes-profissional').hidden = true
+  telaContaProfissional.hidden = true
+  telaAnotacoesProfissional.hidden = true
+  telaEvolucaoPaciente.hidden = true
   telaSessoesDia.hidden = true
   telaDetalheSessao.hidden = true
   telaRelatorioSemanal.hidden = true
@@ -687,6 +700,11 @@ function voltarDashboardProfissional(focar = true) {
 
 function abrirPerfilPaciente(paciente) {
   pacienteSelecionado = paciente
+  fecharEdicaoProfissional()
+  document.querySelector('#configuracoes-profissional').hidden = true
+  telaContaProfissional.hidden = true
+  telaAnotacoesProfissional.hidden = true
+  telaEvolucaoPaciente.hidden = true
   telaSessoesDia.hidden = true
   telaDetalheSessao.hidden = true
   telaRelatorioSemanal.hidden = true
@@ -1112,3 +1130,478 @@ document.querySelector('#form-comentario-sessao').addEventListener('submit', (ev
   renderizarComentariosSessao()
   statusComentarioSessao.textContent = 'Comentário salvo nesta demonstração.'
 })
+
+
+// Evolução usa os registros disponíveis do paciente e preserva meses sem notas.
+const telaEvolucaoPaciente = document.querySelector('#evolucao-paciente')
+const tituloEvolucaoPaciente = document.querySelector('#titulo-evolucao-paciente')
+const formatoMesEvolucao = new Intl.DateTimeFormat('pt-BR', { month: 'short', year: '2-digit' })
+
+function dadosEvolucaoPaciente(quantidadeMeses) {
+  const hoje = new Date()
+  const meses = Array.from({ length: quantidadeMeses }, (_, indice) => ({
+    data: new Date(hoje.getFullYear(), hoje.getMonth() - quantidadeMeses + 1 + indice, 1),
+    sessoes: 0,
+    notas: [],
+  }))
+
+  for (const semana of pacienteSelecionado.semanasRelatorio) {
+    for (const sessao of semana.sessoes) {
+      const data = new Date(semana.inicio)
+      data.setDate(data.getDate() + sessao.dia)
+      const mes = meses.find((item) =>
+        item.data.getFullYear() === data.getFullYear() && item.data.getMonth() === data.getMonth())
+      if (!mes) continue
+      mes.sessoes += 1
+      if (Number.isFinite(sessao.atencaoMedia) && sessao.atencaoMedia >= 0 && sessao.atencaoMedia <= 10) {
+        mes.notas.push(sessao.atencaoMedia)
+      }
+    }
+  }
+
+  return meses.map((mes) => ({
+    rotulo: formatoMesEvolucao.format(mes.data).replace('.', ''),
+    sessoes: mes.sessoes,
+    atencao: mes.notas.length
+      ? mes.notas.reduce((total, nota) => total + nota, 0) / mes.notas.length
+      : null,
+  }))
+}
+
+function desenharGraficoEvolucao(id, titulo, descricao, meses, valores, teto, unidade) {
+  const svg = document.getElementById(id)
+  svg.replaceChildren()
+  function adicionar(tag, atributos, texto) {
+    const elemento = document.createElementNS('http://www.w3.org/2000/svg', tag)
+    for (const [nome, valor] of Object.entries(atributos)) elemento.setAttribute(nome, valor)
+    if (texto !== undefined) elemento.textContent = texto
+    svg.append(elemento)
+    return elemento
+  }
+
+  adicionar('title', { id: 'titulo-' + id }, titulo)
+  adicionar('desc', { id: 'descricao-' + id }, descricao)
+  adicionar('text', { x: 55, y: 22, fill: 'currentColor', 'font-size': 12 }, unidade)
+  const passo = unidade === 'Sessões' ? Math.max(1, Math.ceil(teto / 4)) : 2
+  for (let valor = 0; valor <= teto; valor += passo) {
+    const y = 225 - valor / teto * 180
+    adicionar('line', { x1: 55, x2: 615, y1: y, y2: y, stroke: 'currentColor', opacity: '.18' })
+    adicionar('text', { x: 44, y: y + 4, fill: 'currentColor', 'text-anchor': 'end', 'font-size': 12 }, valor)
+  }
+
+  let anterior = null
+  meses.forEach((mes, indice) => {
+    const x = meses.length === 1 ? 335 : 55 + indice * 560 / (meses.length - 1)
+    adicionar('text', { x, y: 253, fill: 'currentColor', 'text-anchor': 'middle', 'font-size': 12 }, mes.rotulo)
+    const valor = valores[indice]
+    if (valor === null) {
+      anterior = null
+      return
+    }
+    const y = 225 - valor / teto * 180
+    if (anterior) adicionar('line', {
+      x1: anterior.x, y1: anterior.y, x2: x, y2: y, stroke: 'currentColor', 'stroke-width': 3,
+    })
+    const ponto = adicionar('circle', { cx: x, cy: y, r: 5, fill: 'currentColor' })
+    const dica = document.createElementNS('http://www.w3.org/2000/svg', 'title')
+    dica.textContent = mes.rotulo + ': ' + valor.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
+    ponto.append(dica)
+    anterior = { x, y }
+  })
+}
+
+function renderizarEvolucaoPaciente() {
+  const mesesSessoes = dadosEvolucaoPaciente(Number(document.querySelector('#periodo-evolucao-sessoes').value))
+  const mesesAtencao = dadosEvolucaoPaciente(Number(document.querySelector('#periodo-evolucao-atencao').value))
+  const sessoes = mesesSessoes.map((mes) => mes.sessoes)
+  const descricaoSessoes = mesesSessoes.map((mes) => mes.rotulo + ': ' + mes.sessoes + ' sessões').join(' · ')
+  const descricaoAtencao = mesesAtencao.map((mes) => mes.rotulo + ': ' +
+    (mes.atencao === null ? 'sem avaliações' : mes.atencao.toFixed(1) + '/10')).join(' · ')
+  desenharGraficoEvolucao(
+    'grafico-evolucao-sessoes', 'Número de Sessões por Mês', descricaoSessoes,
+    mesesSessoes, sessoes, Math.max(4, Math.ceil(Math.max(...sessoes) / 4) * 4), 'Sessões',
+  )
+  desenharGraficoEvolucao(
+    'grafico-evolucao-atencao', 'Evolução da atenção média', descricaoAtencao,
+    mesesAtencao, mesesAtencao.map((mes) => mes.atencao), 10, 'Pontuação /10',
+  )
+  document.querySelector('#resumo-evolucao-sessoes').textContent = descricaoSessoes
+  document.querySelector('#resumo-evolucao-atencao').textContent =
+    mesesAtencao.every((mes) => mes.atencao === null)
+      ? 'Sem avaliações na escala de 0 a 10 neste período.'
+      : descricaoAtencao
+}
+document.querySelector('#abrir-evolucao-paciente').addEventListener('click', () => {
+  montarSemanasRelatorio()
+  aplicarPeriodoPreferido()
+  renderizarEvolucaoPaciente()
+  trocarTela(perfilProfissionalPaciente, telaEvolucaoPaciente, tituloEvolucaoPaciente)
+})
+document.querySelector('#voltar-evolucao-paciente').addEventListener('click', () => abrirPerfilPaciente(pacienteSelecionado))
+
+
+// Os filtros são independentes para permitir comparar períodos diferentes.
+document.querySelector('#periodo-evolucao-sessoes').addEventListener('change', renderizarEvolucaoPaciente)
+document.querySelector('#periodo-evolucao-atencao').addEventListener('change', renderizarEvolucaoPaciente)
+
+const telaAnotacoesProfissional = document.querySelector('#anotacoes-profissional')
+const tituloAnotacoesProfissional = document.querySelector('#titulo-anotacoes-profissional')
+
+function criarAnotacaoComOrigem(texto, origem, href, abrirOrigem) {
+  const bloco = document.createElement('div')
+  bloco.className = 'protocolo-bloco rounded-3 p-3'
+  const paragrafo = document.createElement('p')
+  paragrafo.className = 'relatorio-anotacao mb-2'
+  paragrafo.textContent = texto
+  const link = document.createElement('a')
+  link.href = href
+  link.className = 'btn paciente-controle text-start'
+  link.textContent = origem
+  link.addEventListener('click', (evento) => {
+    evento.preventDefault()
+    fecharEdicaoProfissional()
+  document.querySelector('#configuracoes-profissional').hidden = true
+  telaContaProfissional.hidden = true
+  telaAnotacoesProfissional.hidden = true
+    abrirOrigem()
+  })
+  bloco.append(paragrafo, link)
+  return bloco
+}
+
+function renderizarPaginaAnotacoes() {
+  const notas = []
+  const comentarios = []
+  pacienteSelecionado.semanasRelatorio.forEach((semana, indiceSemana) => {
+    function selecionarRelatorioOrigem() {
+      seletorSemanaRelatorio.value = indiceSemana
+      renderizarRelatorioSemanal()
+    }
+    for (const anotacao of semana.anotacoes) {
+      const texto = typeof anotacao === 'string' ? anotacao : anotacao.texto
+      notas.push(criarAnotacaoComOrigem(
+        texto, 'Abrir relatório · ' + periodoRelatorio(semana), '#relatorio-semanal', () => {
+          selecionarRelatorioOrigem()
+          telaRelatorioSemanal.hidden = false
+          document.querySelector('#titulo-relatorio-semanal').focus()
+        },
+      ))
+    }
+    for (const sessao of semana.sessoes) {
+      for (const comentario of sessao.comentarios ?? []) {
+        const data = new Date(semana.inicio)
+        data.setDate(data.getDate() + sessao.dia)
+        comentarios.push(criarAnotacaoComOrigem(
+          comentario.texto,
+          'Abrir sessão ' + sessao.numero + ' · ' + dataCurtaRelatorio.format(data),
+          '#profissional-detalhe-sessao',
+          () => {
+            selecionarRelatorioOrigem()
+            abrirSessoesDia(sessao.dia)
+            abrirDetalheSessaoProfissional(sessao, tituloSessoesDia)
+          },
+        ))
+      }
+    }
+  })
+  for (const [id, itens, vazio] of [
+    ['anotacoes-relatorios-lista', notas, 'Nenhuma anotação em relatórios semanais.'],
+    ['anotacoes-sessoes-lista', comentarios, 'Nenhum comentário em sessões.'],
+  ]) {
+    if (!itens.length) {
+      const mensagem = document.createElement('p')
+      mensagem.className = 'mb-0'
+      mensagem.textContent = vazio
+      itens.push(mensagem)
+    }
+    document.getElementById(id).replaceChildren(...itens)
+  }
+}
+
+document.querySelector('#abrir-anotacoes-profissional').addEventListener('click', () => {
+  montarSemanasRelatorio()
+  renderizarPaginaAnotacoes()
+  trocarTela(perfilProfissionalPaciente, telaAnotacoesProfissional, tituloAnotacoesProfissional)
+})
+document.querySelector('#voltar-anotacoes-profissional').addEventListener('click', () => abrirPerfilPaciente(pacienteSelecionado))
+
+document.querySelector('#pacientes-menu-profissional').addEventListener('click', () => {
+  menuProfissional.close()
+  voltarDashboardProfissional(false)
+  document.querySelector('#titulo-lista-pacientes-profissional').focus()
+})
+
+const telaContaProfissional = document.querySelector('#conta-profissional')
+const formularioContaProfissional = document.querySelector('#form-conta-profissional')
+const dadosContaProfissional = document.querySelector('#dados-conta-profissional')
+const editarContaProfissional = document.querySelector('#editar-conta-profissional')
+const statusContaProfissional = document.querySelector('#status-conta-profissional')
+const fotoContaProfissional = document.querySelector('#foto-conta-profissional')
+const arquivoFotoProfissional = document.querySelector('#arquivo-foto-profissional')
+const statusFotoProfissional = document.querySelector('#status-foto-profissional')
+const dadosIniciaisProfissional = Object.fromEntries(new FormData(formularioContaProfissional))
+let dadosSalvosProfissional = { ...dadosIniciaisProfissional }
+let fotoLocalProfissional = null
+
+function fecharEdicaoProfissional() {
+  formularioContaProfissional.hidden = true
+  dadosContaProfissional.hidden = false
+  editarContaProfissional.hidden = false
+  statusContaProfissional.textContent = ''
+}
+
+function renderizarContaProfissional() {
+  const dados = {
+    ...dadosSalvosProfissional,
+    telefone: dadosSalvosProfissional.telefone || 'Não informado',
+    profissao: dadosSalvosProfissional.profissao || 'Não informada',
+    registro: dadosSalvosProfissional.tipoRegistro
+      ? dadosSalvosProfissional.tipoRegistro + ': ' + dadosSalvosProfissional.numeroRegistro
+      : 'Não informado',
+  }
+  for (const campo of dadosContaProfissional.querySelectorAll('[data-campo-profissional]')) {
+    campo.textContent = dados[campo.dataset.campoProfissional]
+  }
+  document.querySelector('#nome-avatar-profissional').textContent = dados.nome
+}
+
+function reiniciarContaProfissional() {
+  fecharEdicaoProfissional()
+  document.querySelector('#configuracoes-profissional').hidden = true
+  telaContaProfissional.hidden = true
+  dadosSalvosProfissional = { ...dadosIniciaisProfissional }
+  renderizarContaProfissional()
+  if (fotoLocalProfissional) URL.revokeObjectURL(fotoLocalProfissional)
+  fotoLocalProfissional = null
+  fotoContaProfissional.src = '/src/img/person.svg'
+  fotoContaProfissional.classList.remove('conta-foto-local')
+  arquivoFotoProfissional.value = ''
+  statusFotoProfissional.textContent = ''
+}
+
+document.querySelector('#abrir-conta-profissional').addEventListener('click', () => {
+  menuProfissional.close()
+  voltarDashboardProfissional(false)
+  renderizarContaProfissional()
+  trocarTela(dashboardProfissional, telaContaProfissional, document.querySelector('#titulo-conta-profissional'))
+})
+
+editarContaProfissional.addEventListener('click', () => {
+  for (const [nome, valor] of Object.entries(dadosSalvosProfissional)) {
+    const campo = formularioContaProfissional.elements.namedItem(nome)
+    campo.value = valor
+    campo.setCustomValidity('')
+  }
+  statusContaProfissional.textContent = ''
+  dadosContaProfissional.hidden = true
+  editarContaProfissional.hidden = true
+  formularioContaProfissional.hidden = false
+  formularioContaProfissional.elements.nome.focus()
+})
+document.querySelector('#cancelar-conta-profissional').addEventListener('click', () => {
+  fecharEdicaoProfissional()
+  editarContaProfissional.focus()
+})
+formularioContaProfissional.addEventListener('input', () => {
+  for (const campo of formularioContaProfissional.querySelectorAll('input')) campo.setCustomValidity('')
+})
+formularioContaProfissional.addEventListener('submit', (evento) => {
+  evento.preventDefault()
+  const dados = Object.fromEntries(Array.from(new FormData(formularioContaProfissional), ([nome, valor]) => [nome, valor.trim()]))
+  formularioContaProfissional.elements.nome.setCustomValidity(dados.nome ? '' : 'Informe o nome completo.')
+  formularioContaProfissional.elements.numeroRegistro.setCustomValidity(
+    Boolean(dados.tipoRegistro) === Boolean(dados.numeroRegistro) ? '' : 'Preencha o tipo e o número do registro.',
+  )
+  if (!formularioContaProfissional.reportValidity()) return
+  dadosSalvosProfissional = dados
+  renderizarContaProfissional()
+  fecharEdicaoProfissional()
+  statusContaProfissional.textContent = 'Informações atualizadas nesta demonstração.'
+  editarContaProfissional.focus()
+})
+document.querySelector('#alterar-foto-profissional').addEventListener('click', () => arquivoFotoProfissional.click())
+arquivoFotoProfissional.addEventListener('change', () => {
+  const [arquivo] = arquivoFotoProfissional.files
+  if (!arquivo) return
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(arquivo.type)) {
+    statusFotoProfissional.textContent = 'Escolha uma imagem JPEG, PNG ou WebP.'
+    arquivoFotoProfissional.value = ''
+    return
+  }
+  if (fotoLocalProfissional) URL.revokeObjectURL(fotoLocalProfissional)
+  fotoLocalProfissional = URL.createObjectURL(arquivo)
+  fotoContaProfissional.src = fotoLocalProfissional
+  fotoContaProfissional.classList.add('conta-foto-local')
+  statusFotoProfissional.textContent = 'Prévia da foto atualizada nesta visita.'
+})
+
+
+// Preferências por perfil, mantidas em memória nesta demonstração.
+const preferenciasProfissional = { ordem: 'padrao', periodo: '5' }
+const preferenciaTema = { paciente: 'light', profissional: 'light' }
+const temaSistema = window.matchMedia('(prefers-color-scheme: dark)')
+
+function aplicarTemaConfiguracoes(perfil, tema) {
+  preferenciaTema[perfil] = tema
+  const escuro = tema === 'dark' || (tema === 'auto' && temaSistema.matches)
+  const tela = perfil === 'paciente' ? telaAcessoPaciente : telaProfissional
+  const botao = perfil === 'paciente' ? botaoTema : temaProfissional
+  tela.dataset.bsTheme = escuro ? 'dark' : 'light'
+  botao.setAttribute('aria-pressed', String(escuro))
+  document.querySelector('#tema-configuracoes-' + perfil).value = tema
+}
+
+function alternarTemaConfiguracoes(perfil) {
+  const tela = perfil === 'paciente' ? telaAcessoPaciente : telaProfissional
+  aplicarTemaConfiguracoes(perfil, tela.dataset.bsTheme === 'dark' ? 'light' : 'dark')
+}
+
+function aplicarPeriodoPreferido() {
+  document.querySelector('#periodo-evolucao-sessoes').value = preferenciasProfissional.periodo
+  document.querySelector('#periodo-evolucao-atencao').value = preferenciasProfissional.periodo
+}
+
+function aplicarConfiguracoes(perfil) {
+  const formulario = document.querySelector('#form-configuracoes-' + perfil)
+  aplicarTemaConfiguracoes(perfil, formulario.elements.tema.value)
+  if (perfil === 'profissional') {
+    preferenciasProfissional.periodo = formulario.elements.periodo.value
+    preferenciasProfissional.ordem = formulario.elements.ordem.value
+    renderizarDashboardProfissional()
+  } else {
+    const valor = formulario.elements.monitores.value
+    formularioConfiguracaoTelas.querySelector('input[value="' + valor + '"]').checked = true
+  }
+}
+
+for (const perfil of ['paciente', 'profissional']) {
+  const formulario = document.querySelector('#form-configuracoes-' + perfil)
+  const status = document.querySelector('#status-configuracoes-' + perfil)
+  formulario.elements.tema.addEventListener('change', () => {
+    aplicarTemaConfiguracoes(perfil, formulario.elements.tema.value)
+  })
+  formulario.addEventListener('submit', (evento) => {
+    evento.preventDefault()
+    aplicarConfiguracoes(perfil)
+    status.textContent = 'Preferências salvas nesta demonstração.'
+  })
+  formulario.addEventListener('reset', () => {
+    queueMicrotask(() => {
+      aplicarConfiguracoes(perfil)
+      status.textContent = 'Preferências restauradas ao padrão.'
+    })
+  })
+}
+temaSistema.addEventListener('change', () => {
+  for (const perfil of ['paciente', 'profissional']) {
+    if (preferenciaTema[perfil] === 'auto') aplicarTemaConfiguracoes(perfil, 'auto')
+  }
+})
+
+formularioConfiguracaoTelas.addEventListener('submit', () => {
+  document.querySelector('#form-configuracoes-paciente').elements.monitores.value =
+    new FormData(formularioConfiguracaoTelas).get('quantidadeTelas')
+})
+
+document.querySelector('#abrir-configuracoes-profissional').addEventListener('click', () => {
+  menuProfissional.close()
+  voltarDashboardProfissional(false)
+  trocarTela(
+    dashboardProfissional,
+    document.querySelector('#configuracoes-profissional'),
+    document.querySelector('#titulo-configuracoes-profissional'),
+  )
+})
+
+
+// A confirmação real da troca depende do serviço de autenticação.
+const dialogNovaSenha = document.querySelector('#dialog-nova-senha')
+const formularioNovaSenha = document.querySelector('#form-nova-senha')
+const novaSenha = document.querySelector('#nova-senha')
+const confirmarNovaSenha = document.querySelector('#confirmar-nova-senha')
+const mostrarNovaSenha = document.querySelector('#mostrar-nova-senha')
+const statusNovaSenha = document.querySelector('#status-nova-senha')
+const conteudoNovaSenha = document.querySelector('#conteudo-nova-senha')
+const confirmacaoNovaSenha = document.querySelector('#confirmacao-nova-senha')
+const tituloConfirmacaoNovaSenha = document.querySelector('#titulo-confirmacao-nova-senha')
+
+function limparFormularioNovaSenha() {
+  conteudoNovaSenha.hidden = false
+  confirmacaoNovaSenha.hidden = true
+  dialogNovaSenha.setAttribute('aria-labelledby', 'titulo-nova-senha')
+  formularioNovaSenha.reset()
+  novaSenha.type = 'password'
+  confirmarNovaSenha.type = 'password'
+  confirmarNovaSenha.setCustomValidity('')
+  statusNovaSenha.textContent = ''
+}
+
+for (const botao of document.querySelectorAll('[data-abrir-nova-senha]')) {
+  botao.addEventListener('click', () => {
+    limparFormularioNovaSenha()
+    dialogNovaSenha.showModal()
+    novaSenha.focus()
+  })
+}
+for (const id of ['fechar-nova-senha', 'cancelar-nova-senha']) {
+  document.getElementById(id).addEventListener('click', () => dialogNovaSenha.close())
+}
+dialogNovaSenha.addEventListener('close', limparFormularioNovaSenha)
+mostrarNovaSenha.addEventListener('change', () => {
+  const tipo = mostrarNovaSenha.checked ? 'text' : 'password'
+  novaSenha.type = tipo
+  confirmarNovaSenha.type = tipo
+})
+for (const campo of [novaSenha, confirmarNovaSenha]) {
+  campo.addEventListener('input', () => {
+    confirmarNovaSenha.setCustomValidity('')
+    statusNovaSenha.textContent = ''
+  })
+}
+formularioNovaSenha.addEventListener('submit', (evento) => {
+  evento.preventDefault()
+  confirmarNovaSenha.setCustomValidity(
+    novaSenha.value === confirmarNovaSenha.value ? '' : 'As senhas precisam ser iguais.',
+  )
+  if (!formularioNovaSenha.reportValidity()) return
+  limparFormularioNovaSenha()
+  dialogNovaSenha.setAttribute('aria-labelledby', 'titulo-confirmacao-nova-senha')
+  trocarTela(conteudoNovaSenha, confirmacaoNovaSenha, tituloConfirmacaoNovaSenha)
+})
+
+document.querySelector('#concluir-nova-senha').addEventListener('click', () => dialogNovaSenha.close())
+
+
+// O relógio da sessão determina os lembretes. Pausas não contam para o intervalo.
+const dialogCheckin = document.querySelector('#checkin-atencao')
+const lembretesCheckin = document.querySelector('#form-configuracoes-paciente').elements.lembretes
+
+function verificarCheckin(tempoAtivo) {
+  if (inicioCronometro === null || fimSessao !== null || telaSessao.hidden || tempoAtivo < proximoCheckin) return
+
+  // Avança para o próximo intervalo e evita acumular modais em abas suspensas.
+  proximoCheckin = (Math.floor(tempoAtivo / INTERVALO_CHECKIN_MS) + 1) * INTERVALO_CHECKIN_MS
+  if (!lembretesCheckin.checked || dialogCheckin.open || document.hidden) return
+  if (document.querySelector('dialog[open]')) return
+
+  const tema = telaAcessoPaciente.dataset.bsTheme ?? 'light'
+  dialogCheckin.dataset.bsTheme = tema
+  dialogCheckin.showModal()
+}
+
+for (const botao of dialogCheckin.querySelectorAll('[data-atencao]')) {
+  botao.addEventListener('click', () => {
+    if (inicioCronometro === null || fimSessao !== null) {
+      dialogCheckin.close()
+      return
+    }
+    checkinsSessao.push({
+      atencao: botao.dataset.atencao,
+      horario: new Date().toISOString(),
+      tempoAtivoMs: Math.round(tempoAcumulado + performance.now() - inicioCronometro),
+    })
+    dialogCheckin.close()
+  })
+}
+
+document.querySelector('#fechar-checkin').addEventListener('click', () => dialogCheckin.close())

@@ -100,6 +100,7 @@
           </div>
           <button class="btn login-entrar rounded-pill w-100" type="submit">Enviar link</button>
           <button id="voltar-login" class="btn btn-link login-link d-block mx-auto mt-2" type="button">Voltar para o login</button>
+          <button class="btn btn-link login-link d-block mx-auto mt-2" type="button" data-abrir-nova-senha>Visualizar formulário de nova senha</button>
           <p id="recuperar-status" class="login-status mt-3 mb-0" role="status"></p>
         </form>
       </section>
@@ -258,14 +259,14 @@
               <button id="fechar-menu-paciente" class="btn paciente-controle" type="button" aria-label="Fechar menu" autofocus>×</button>
             </div>
             <nav class="paciente-menu-opcoes" aria-label="Navegação do paciente">
-              <button class="dropdown-item" type="button" data-destino-paciente="titulo-acesso-paciente">Início</button>
-              <button class="dropdown-item" type="button" data-destino-paciente="titulo-meu-historico">Histórico</button>
-              <button class="dropdown-item" type="button" data-destino-paciente="titulo-conta-paciente">Minha conta</button>
-              <button class="dropdown-item" type="button" data-destino-paciente="titulo-tratamento-paciente">Sobre o tratamento</button>
-              <button class="dropdown-item" type="button" data-destino-paciente="titulo-seguranca-paciente">Câmera e segurança</button>
-              <button class="dropdown-item" type="button" disabled>Configurações</button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-acesso-paciente"><img class="menu-icone" src="/src/img/house.svg" alt=""><span>Início</span></button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-meu-historico"><img class="menu-icone" src="/src/img/graph-up.svg" alt=""><span>Histórico</span></button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-conta-paciente"><img class="menu-icone" src="/src/img/person.svg" alt=""><span>Minha conta</span></button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-tratamento-paciente"><img class="menu-icone" src="/src/img/check-circle.svg" alt=""><span>Sobre o tratamento</span></button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-seguranca-paciente"><img class="menu-icone" src="/src/img/shield.svg" alt=""><span>Câmera e segurança</span></button>
+              <button class="dropdown-item" type="button" data-destino-paciente="titulo-configuracoes-paciente"><img class="menu-icone" src="/src/img/settings.svg" alt=""><span>Configurações</span></button>
             </nav>
-            <button id="sair-paciente" class="btn paciente-controle paciente-sair" type="button">Sair</button>
+            <button id="sair-paciente" class="btn paciente-controle paciente-sair" type="button"><img class="menu-icone" src="/src/img/logout.svg" alt=""><span>Sair</span></button>
           </div>
         </dialog>
 
@@ -310,6 +311,53 @@
         </div>
 
         </div>
+        <!-- Preferências de aparência e uso do perfil paciente -->
+        <section id="configuracoes-paciente" aria-labelledby="titulo-configuracoes-paciente" hidden>
+          <h1 id="titulo-configuracoes-paciente" class="h2" tabindex="-1">Configurações</h1>
+          <p class="mb-4">Personalize sua experiência no FOCUS+</p>
+          <form id="form-configuracoes-paciente" class="d-grid gap-3">
+            <article class="paciente-card">
+              <h2 class="h5">Aparência</h2>
+              <label class="form-label" for="tema-configuracoes-paciente">Tema</label>
+              <select id="tema-configuracoes-paciente" name="tema" class="form-select">
+                <option value="light">Claro</option>
+                <option value="dark">Escuro</option>
+                <option value="auto">Automático</option>
+              </select>
+            </article>
+            <article class="paciente-card">
+              <h2 class="h5">Notificações</h2>
+              <label class="form-check mb-2">
+                <input name="avisos" class="form-check-input" type="checkbox" checked>
+                <span class="form-check-label">Avisos dentro do aplicativo</span>
+              </label>
+              <label class="form-check mb-0">
+                <input name="som" class="form-check-input" type="checkbox">
+                <span class="form-check-label">Som das notificações</span>
+              </label>
+            </article>            <article class="paciente-card">
+              <h2 class="h5">Preferências de sessão</h2>
+              <label class="form-label" for="telas-configuracoes-paciente">Quantidade de monitores</label>
+              <select id="telas-configuracoes-paciente" name="monitores" class="form-select mb-3">
+                <option value="1">Uma tela</option>
+                <option value="2">Duas telas</option>
+                <option value="3+">Três ou mais telas</option>
+              </select>
+              <label class="form-label" for="camera-configuracoes-paciente">Câmera preferida</label>
+              <select id="camera-configuracoes-paciente" class="form-select mb-3" disabled>
+                <option>Disponível ao conectar a câmera</option>
+              </select>
+              <label class="form-check mb-0">
+                <input name="lembretes" class="form-check-input" type="checkbox" checked>
+                <span class="form-check-label">Lembretes de check-in durante a sessão</span>
+              </label>
+            </article>            <div class="d-flex flex-wrap gap-2">
+              <button class="btn login-entrar rounded-pill px-4" type="submit">Salvar preferências</button>
+              <button class="btn paciente-controle rounded-pill" type="reset">Restaurar padrão</button>
+            </div>
+            <p id="status-configuracoes-paciente" class="small mb-0" role="status"></p>
+          </form>
+        </section>
         <!-- Minha conta: foto, informações pessoais e segurança -->
         <section id="conta-paciente" aria-labelledby="titulo-conta-paciente" hidden>
           <header class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-4">
@@ -378,8 +426,8 @@
 
           <article class="paciente-card">
             <h2 class="h5 mb-3">Segurança</h2>
-            <button class="btn paciente-controle rounded-pill" type="button" disabled aria-describedby="ajuda-alterar-senha">Alterar senha</button>
-            <p id="ajuda-alterar-senha" class="small mt-2 mb-0">Disponível após a integração da autenticação.</p>
+            <button class="btn paciente-controle rounded-pill" type="button" data-abrir-nova-senha aria-describedby="ajuda-alterar-senha">Alterar senha</button>
+            <p id="ajuda-alterar-senha" class="small mt-2 mb-0">A alteração será disponibilizada com a autenticação.</p>
           </article>
         </section>
 
@@ -425,7 +473,7 @@
                 <h2 class="h6" data-sessao-numero></h2>
                 <p class="mb-1">Horário: <strong data-sessao-horario></strong></p>
                 <p class="mb-1">Pausas: <strong data-sessao-pausas></strong></p>
-                <p class="mb-1">Check-ins: <strong>0 registrados</strong></p>
+                <p class="mb-1">Check-ins: <strong data-sessao-checkins>0 registrados</strong></p>
                 <p>Qualidade da câmera no geral: <strong>Indisponível</strong></p>
                 <h3 class="h6">Respostas do checklist</h3>
                 <dl class="mb-0" data-sessao-checklist></dl>
@@ -607,7 +655,7 @@
             </div>
             <div class="d-flex flex-wrap justify-content-between gap-2">
               <dt class="fw-normal">Check-ins</dt>
-              <dd class="fw-bold mb-0">0 registrados</dd>
+              <dd id="checkins-sessao-finalizada" class="fw-bold mb-0">0 registrados</dd>
             </div>
             <div class="d-flex flex-wrap justify-content-between gap-2">
               <dt class="fw-normal">Qualidade da câmera no geral</dt>
@@ -651,28 +699,31 @@
               <button id="fechar-menu-profissional" class="btn paciente-controle" type="button" aria-label="Fechar menu" autofocus>×</button>
             </div>
             <nav class="paciente-menu-opcoes" aria-label="Navegação do profissional">
-              <button id="inicio-profissional" class="dropdown-item" type="button">Início</button>
+              <button id="inicio-profissional" class="dropdown-item" type="button"><img class="menu-icone" src="/src/img/house.svg" alt=""><span>Início</span></button>
+              <button id="pacientes-menu-profissional" class="dropdown-item" type="button"><img class="menu-icone" src="/src/img/people.svg" alt=""><span>Pacientes</span></button>
+              <button id="abrir-conta-profissional" class="dropdown-item" type="button"><img class="menu-icone" src="/src/img/person.svg" alt=""><span>Minha Conta</span></button>
+              <button class="dropdown-item" type="button" id="abrir-configuracoes-profissional"><img class="menu-icone" src="/src/img/settings.svg" alt=""><span>Configurações</span></button>
             </nav>
-            <button id="sair-profissional" class="btn paciente-controle paciente-sair" type="button">Sair</button>
+            <button id="sair-profissional" class="btn paciente-controle paciente-sair" type="button"><img class="menu-icone" src="/src/img/logout.svg" alt=""><span>Sair</span></button>
           </div>
         </dialog>
         <div id="dashboard-profissional">
         <h1 id="titulo-dashboard-profissional" class="h2 mb-4" tabindex="-1">Dashboard</h1>
 
         <div class="row g-3 mb-4">
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-3">
             <article class="paciente-card h-100">
               <h2 class="h6">Pacientes ativos</h2>
               <p id="profissional-pacientes-ativos" class="display-6 mb-0"></p>
             </article>
           </div>
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-6">
             <article class="paciente-card h-100">
               <h2 class="h6">Sessões dos pacientes essa semana</h2>
               <p id="profissional-sessoes-semana" class="display-6 mb-0"></p>
             </article>
           </div>
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-3">
             <article class="paciente-card h-100">
               <h2 class="h6">Solicitações pendentes</h2>
               <p id="profissional-solicitacoes" class="display-6 mb-0"></p>
@@ -680,7 +731,7 @@
           </div>
         </div>
 
-        <h2 class="h4 mb-3">Meus pacientes</h2>
+        <h2 id="titulo-lista-pacientes-profissional" class="h4 mb-3" tabindex="-1">Meus pacientes</h2>
         <div id="profissional-lista-pacientes" class="d-grid gap-3"></div>
         <template id="profissional-item-paciente">
           <button class="paciente-card profissional-paciente-botao w-100 d-flex flex-wrap justify-content-between align-items-center gap-3 text-start" type="button" data-abrir-paciente>
@@ -741,12 +792,10 @@
                   <button id="abrir-relatorio-semanal" class="btn paciente-controle text-start p-3" type="button"><span class="d-block fw-bold">Relatório Semanal</span>
                     <span class="small">Última semana</span>
                   </button>
-                  <button class="btn paciente-controle text-start p-3" type="button" disabled>
-                    <span class="d-block fw-bold">Evolução</span>
+                  <button id="abrir-evolucao-paciente" class="btn paciente-controle text-start p-3" type="button"><span class="d-block fw-bold">Evolução</span>
                     <span class="small">Histórico completo</span>
                   </button>
-                  <button class="btn paciente-controle text-start p-3" type="button" disabled>
-                    <span class="d-block fw-bold">Anotações</span>
+                  <button id="abrir-anotacoes-profissional" class="btn paciente-controle text-start p-3" type="button"><span class="d-block fw-bold">Anotações</span>
                     <span class="small">Suas observações</span>
                   </button>
                 </div>
@@ -892,9 +941,233 @@
           </article>
         </section>
 
+        <!-- Profissional: evolução mensal do paciente selecionado -->
+        <section id="evolucao-paciente" aria-labelledby="titulo-evolucao-paciente" hidden>
+          <button id="voltar-evolucao-paciente" class="btn paciente-controle mb-3" type="button">← Perfil do paciente</button>
+          <h1 id="titulo-evolucao-paciente" class="h2" tabindex="-1">Evolução do Paciente</h1>
+          <p class="mb-4">Histórico do paciente por período</p>
+
+          <article class="paciente-card mb-3">
+            <h2 class="h5">Número de Sessões por Mês</h2>
+            <div class="mb-3">
+              <label class="form-label" for="periodo-evolucao-sessoes">Período</label>
+              <select id="periodo-evolucao-sessoes" class="form-select">
+                <option value="1">Último mês</option>
+                <option value="3">Últimos 3 meses</option>
+                <option value="5" selected>Últimos 5 meses</option>
+              </select>
+            </div>
+            <div class="relatorio-grafico">
+              <svg id="grafico-evolucao-sessoes" viewBox="0 0 640 280" role="img" aria-labelledby="titulo-grafico-evolucao-sessoes descricao-grafico-evolucao-sessoes"></svg>
+            </div>
+            <p id="resumo-evolucao-sessoes" class="small mb-0"></p>
+          </article>
+
+          <article class="paciente-card">
+            <h2 class="h5">Evolução da atenção média</h2>
+            <div class="mb-3">
+              <label class="form-label" for="periodo-evolucao-atencao">Período</label>
+              <select id="periodo-evolucao-atencao" class="form-select">
+                <option value="1">Último mês</option>
+                <option value="3">Últimos 3 meses</option>
+                <option value="5" selected>Últimos 5 meses</option>
+              </select>
+            </div>
+            <div class="relatorio-grafico">
+              <svg id="grafico-evolucao-atencao" viewBox="0 0 640 280" role="img" aria-labelledby="titulo-grafico-evolucao-atencao descricao-grafico-evolucao-atencao"></svg>
+            </div>
+            <p id="resumo-evolucao-atencao" class="small mb-0"></p>
+          </article>
+        </section>
+
+        <!-- Profissional: anotações agrupadas pela origem -->
+        <section id="anotacoes-profissional" aria-labelledby="titulo-anotacoes-profissional" hidden>
+          <button id="voltar-anotacoes-profissional" class="btn paciente-controle mb-3" type="button">← Perfil do paciente</button>
+          <h1 id="titulo-anotacoes-profissional" class="h2 mb-4" tabindex="-1">Anotações</h1>
+          <article class="paciente-card mb-3">
+            <h2 class="h5">Anotações dos relatórios semanais</h2>
+            <div id="anotacoes-relatorios-lista" class="d-grid gap-3"></div>
+          </article>
+          <article class="paciente-card">
+            <h2 class="h5">Comentários das sessões</h2>
+            <div id="anotacoes-sessoes-lista" class="d-grid gap-3"></div>
+          </article>
+        </section>
+
+        <!-- Conta do profissional: dados pessoais, foto e segurança -->
+        <section id="conta-profissional" aria-labelledby="titulo-conta-profissional" hidden>
+          <header class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
+            <div>
+              <h1 id="titulo-conta-profissional" class="h2" tabindex="-1">Minha Conta</h1>
+              <p class="mb-0">Gerencie suas informações pessoais</p>
+            </div>
+            <button id="editar-conta-profissional" class="btn paciente-controle rounded-pill" type="button">Editar</button>
+          </header>
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-5">
+              <div class="paciente-card h-100 text-center">
+                <div class="conta-avatar mx-auto mb-3">
+                  <img id="foto-conta-profissional" src="/src/img/person.svg" alt="">
+                </div>
+                <p id="nome-avatar-profissional" class="h5 mb-3">Aline Martins</p>
+                <button id="alterar-foto-profissional" class="btn paciente-controle rounded-pill" type="button">Alterar foto</button>
+                <input id="arquivo-foto-profissional" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Escolher foto de perfil" hidden>
+                <p id="status-foto-profissional" class="small mt-2 mb-0" role="status"></p>
+              </div>
+            </div>
+            <div class="col-12 col-sm-7">
+              <article class="paciente-card h-100">
+                <h2 class="h5 mb-3">Informações pessoais</h2>
+                <dl id="dados-conta-profissional" class="conta-dados mb-0">
+                  <dt>Nome completo</dt><dd data-campo-profissional="nome">Aline Martins</dd>
+                  <dt>E-mail</dt><dd data-campo-profissional="email">aline@example.com</dd>
+                  <dt>Telefone</dt><dd data-campo-profissional="telefone">Não informado</dd>
+                  <dt>Profissão</dt><dd data-campo-profissional="profissao">Não informada</dd>
+                  <dt>Registro Profissional</dt><dd data-campo-profissional="registro">Não informado</dd>
+                </dl>
+                <form id="form-conta-profissional" hidden>
+                  <label class="form-label d-block">Nome completo
+                    <input class="form-control mt-1" name="nome" autocomplete="name" value="Aline Martins" required>
+                  </label>
+                  <label class="form-label d-block">E-mail
+                    <input class="form-control mt-1" name="email" type="email" autocomplete="email" value="aline@example.com" required>
+                  </label>
+                  <label class="form-label d-block">Telefone
+                    <input class="form-control mt-1" name="telefone" type="tel" autocomplete="tel">
+                  </label>
+                  <label class="form-label d-block">Profissão
+                    <input class="form-control mt-1" name="profissao">
+                  </label>
+                  <label class="form-label d-block">Tipo do registro profissional
+                    <input class="form-control mt-1" name="tipoRegistro" placeholder="Ex.: CRM ou CRP">
+                  </label>
+                  <label class="form-label d-block mb-3">Número do registro
+                    <input class="form-control mt-1" name="numeroRegistro">
+                  </label>
+                  <div class="d-flex flex-wrap justify-content-end gap-2">
+                    <button id="cancelar-conta-profissional" class="btn paciente-controle rounded-pill" type="button">Cancelar</button>
+                    <button class="btn login-entrar rounded-pill px-4" type="submit">Salvar</button>
+                  </div>
+                </form>
+                <p id="status-conta-profissional" class="small mt-3 mb-0 login-status" role="status"></p>
+              </article>
+            </div>
+          </div>
+          <article class="paciente-card">
+            <h2 class="h5 mb-3">Segurança</h2>
+            <button class="btn paciente-controle rounded-pill" type="button" data-abrir-nova-senha aria-describedby="ajuda-senha-profissional">Alterar senha</button>
+            <p id="ajuda-senha-profissional" class="small mt-2 mb-0">A alteração será disponibilizada com a autenticação.</p>
+          </article>
+        </section>
+
+        <!-- Preferências de aparência e uso do perfil profissional -->
+        <section id="configuracoes-profissional" aria-labelledby="titulo-configuracoes-profissional" hidden>
+          <h1 id="titulo-configuracoes-profissional" class="h2" tabindex="-1">Configurações</h1>
+          <p class="mb-4">Personalize sua experiência no FOCUS+</p>
+          <form id="form-configuracoes-profissional" class="d-grid gap-3">
+            <article class="paciente-card">
+              <h2 class="h5">Aparência</h2>
+              <label class="form-label" for="tema-configuracoes-profissional">Tema</label>
+              <select id="tema-configuracoes-profissional" name="tema" class="form-select">
+                <option value="light">Claro</option>
+                <option value="dark">Escuro</option>
+                <option value="auto">Automático</option>
+              </select>
+            </article>
+            <article class="paciente-card">
+              <h2 class="h5">Notificações</h2>
+              <label class="form-check mb-2">
+                <input name="avisos" class="form-check-input" type="checkbox" checked>
+                <span class="form-check-label">Avisos dentro do aplicativo</span>
+              </label>
+              <label class="form-check mb-0">
+                <input name="som" class="form-check-input" type="checkbox">
+                <span class="form-check-label">Som das notificações</span>
+              </label>
+            </article>            <article class="paciente-card">
+              <h2 class="h5">Relatórios e pacientes</h2>
+              <label class="form-label" for="periodo-configuracoes-profissional">Período inicial da evolução</label>
+              <select id="periodo-configuracoes-profissional" name="periodo" class="form-select mb-3">
+                <option value="1">Último mês</option>
+                <option value="3">Últimos 3 meses</option>
+                <option value="5" selected>Últimos 5 meses</option>
+              </select>
+              <label class="form-label" for="ordem-configuracoes-profissional">Ordenação dos pacientes</label>
+              <select id="ordem-configuracoes-profissional" name="ordem" class="form-select mb-3">
+                <option value="padrao">Ordem de cadastro</option>
+                <option value="nome">Nome</option>
+              </select>
+              <label class="form-check mb-2">
+                <input name="novasSessoes" class="form-check-input" type="checkbox" checked>
+                <span class="form-check-label">Avisos de novas sessões</span>
+              </label>
+              <label class="form-check mb-0">
+                <input name="vinculos" class="form-check-input" type="checkbox" checked>
+                <span class="form-check-label">Avisos de solicitações de vínculo</span>
+              </label>
+            </article>            <div class="d-flex flex-wrap gap-2">
+              <button class="btn login-entrar rounded-pill px-4" type="submit">Salvar preferências</button>
+              <button class="btn paciente-controle rounded-pill" type="reset">Restaurar padrão</button>
+            </div>
+            <p id="status-configuracoes-profissional" class="small mb-0" role="status"></p>
+          </form>
+        </section>
       </section>
 
     </main>
+    <!-- Check-in silencioso durante a sessão -->
+    <dialog id="checkin-atencao" class="checkin-dialog" aria-labelledby="titulo-checkin-atencao">
+      <h2 id="titulo-checkin-atencao" class="h4 text-center mb-4">Como está sua atenção no momento?</h2>
+      <div class="d-grid gap-2">
+        <button class="btn checklist-resposta" type="button" data-atencao="Baixa">Baixa</button>
+        <button class="btn checklist-resposta" type="button" data-atencao="Moderada">Moderada</button>
+        <button class="btn checklist-resposta" type="button" data-atencao="Alta">Alta</button>
+      </div>
+      <button id="fechar-checkin" class="btn paciente-controle d-block mx-auto mt-3" type="button">Agora não</button>
+    </dialog>
+
+    <!-- Nova senha: formulário compartilhado pela recuperação e pelas contas -->
+    <dialog id="dialog-nova-senha" class="nova-senha-dialog" aria-labelledby="titulo-nova-senha">
+      <div class="d-flex justify-content-end">
+        <button id="fechar-nova-senha" class="btn login-link" type="button" aria-label="Fechar formulário de nova senha">×</button>
+      </div>
+      <div id="conteudo-nova-senha">
+      <h1 id="titulo-nova-senha" class="h3 text-center" tabindex="-1">Definir nova senha</h1>
+      <p class="text-center">Digite e confirme sua nova senha.</p>
+      <form id="form-nova-senha">
+        <div class="mb-3">
+          <label class="form-label" for="nova-senha">Nova senha</label>
+          <input id="nova-senha" class="form-control" type="password" autocomplete="new-password" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="confirmar-nova-senha">Confirmar nova senha</label>
+          <input id="confirmar-nova-senha" class="form-control" type="password" autocomplete="new-password" required>
+        </div>
+        <label class="form-check mb-4">
+          <input id="mostrar-nova-senha" class="form-check-input" type="checkbox">
+          <span class="form-check-label">Mostrar senhas</span>
+        </label>
+        <div class="d-flex flex-wrap gap-2">
+          <button id="cancelar-nova-senha" class="btn btn-outline-secondary rounded-pill" type="button">Cancelar</button>
+          <button class="btn login-entrar rounded-pill flex-grow-1" type="submit">Salvar nova senha</button>
+        </div>
+        <p id="status-nova-senha" class="small mt-3 mb-0" role="status"></p>
+      </form>
+      </div>
+      <section id="confirmacao-nova-senha" class="text-center" aria-labelledby="titulo-confirmacao-nova-senha" hidden>
+        <span class="d-inline-block rounded-circle p-3 mb-3" style="background: #e5e9df; color: #355c4d;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="m8 12 2.5 2.5L16 9"/>
+          </svg>
+        </span>
+        <h1 id="titulo-confirmacao-nova-senha" class="h3" tabindex="-1">Nova senha confirmada!</h1>
+        <p>Os campos foram validados com sucesso.</p>
+        <p class="small">A alteração da senha ficará disponível após a integração da autenticação.</p>
+        <button id="concluir-nova-senha" class="btn login-entrar rounded-pill w-100" type="button">Continuar</button>
+      </section>
+    </dialog>
+
     
     
   </body>
