@@ -833,3 +833,45 @@ dialog[open]::backdrop {
     animation: none;
   }
 }
+
+.gerenciar-pacientes {
+  position: relative;
+}
+
+.gerenciar-pacientes summary::-webkit-details-marker {
+  display: none;
+}
+
+.gerenciar-pacientes-opcoes {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + .5rem);
+  right: 0;
+  width: max-content;
+  min-width: 100%;
+  padding: .5rem;
+  border: 1px solid var(--paciente-borda);
+  border-radius: .75rem;
+  background: var(--paciente-superficie);
+  box-shadow: 0 .5rem 1.25rem rgb(49 70 61 / 14%);
+}
+
+.gerenciar-pacientes-opcoes .dropdown-item {
+  color: var(--paciente-texto);
+  padding: .6rem .75rem;
+  border-radius: .375rem;
+}
+
+.gerenciar-pacientes-opcoes .dropdown-item:hover {
+  background: var(--paciente-destaque);
+}
+
+.gerenciar-pacientes[open] .gerenciar-pacientes-opcoes {
+  animation: abrir-notificacoes 220ms cubic-bezier(.22, 1, .36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gerenciar-pacientes[open] .gerenciar-pacientes-opcoes {
+    animation: none;
+  }
+}
